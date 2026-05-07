@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technician Registration</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h2>Technician Registration</h2>
+
+  <form id="techForm">
+    
+    <label>Full Name</label>
+    <input type="text" id="name" required>
+
+    <label>Email</label>
+    <input type="email" id="email" required>
+
+    <label>Phone Number</label>
+    <input type="tel" id="phone" required>
+
+    <label>Specialization</label>
+    <select id="specialization" required>
+      <option value="">Select</option>
+      <option>TV Repair</option>
+      <option>Refrigerator Repair</option>
+      <option>Washing Machine Repair</option>
+      <option>AC Repair</option>
+    </select>
+
+    <label>Experience (Years)</label>
+    <input type="number" id="experience" required>
+
+    <label>Upload ID Proof</label>
+    <input type="file" id="idProof" accept=".jpg,.png,.pdf" required>
+
+    <label>Upload Certificate</label>
+    <input type="file" id="certificate" accept=".jpg,.png,.pdf" required>
+
+    <button type="submit">Register</button>
+
+  </form>
+
+  <p id="message"></p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
