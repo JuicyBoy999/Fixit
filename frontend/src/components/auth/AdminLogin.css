@@ -1,0 +1,79 @@
+/* AdminLogin.css */
+
+.admin-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #0c2340; /* Dark blue background */
+  color: #ffffff; /* White text */
+}
+
+.admin-login-container {
+  background-color: #14274e; /* Slightly lighter blue */
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.admin-login-container h2 {
+  margin-bottom: 1.5rem;
+}
+
+.admin-login-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-login-container input {
+  background-color: #1e3a5f;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 1rem;
+  color: white;
+  font-size: 1rem;
+}
+
+.admin-login-container input::placeholder {
+  color: #829ab0;
+}
+
+.admin-login-container input:focus {
+  outline: none;
+  border: 2px solid #0084ff;
+}
+
+.admin-login-container button {
+  background-color: #0084ff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.admin-login-container button:hover {
+  background-color: #005f99;
+  cursor: pointer;
+}
+
+.admin-login-container .error {
+  color: #ff4c4c;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.admin-login-container a {
+  color: #0084ff;
+  text-decoration: none;
+}
+
+.admin-login-container a:hover {
+  text-decoration: underline;
+  color: #66b3ff;
+  cursor: pointer;
+}
