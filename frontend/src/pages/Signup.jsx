@@ -21,7 +21,7 @@ export default function Signup() {
     }
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setError('')
 
@@ -40,8 +40,25 @@ export default function Signup() {
       return
     }
 
-    console.log({ firstName, lastName, email, phone, city, password })
-    setSubmitted(true)
+    try {
+      const res = await fetch('http://localhost:5000/api/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, email, phone, city, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.message)
+        return
+      }
+
+      setSubmitted(true)
+
+    } catch (err) {
+      setError('Cannot connect to server. Make sure backend is running.')
+    }
   }
 
   if (submitted) {
@@ -154,7 +171,7 @@ export default function Signup() {
                 <option value="lalitpur">Lalitpur</option>
                 <option value="bhaktapur">Bhaktapur</option>
                 <option value="biratnagar">Biratnagar</option>
-                
+                <option value="birgunj">Birgunj</option>
               </select>
             </div>
           </div>

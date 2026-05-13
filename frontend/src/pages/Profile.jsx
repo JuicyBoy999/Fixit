@@ -40,7 +40,7 @@ export default function Profile() {
     setSuccess(false)
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setError('')
 
@@ -57,8 +57,26 @@ export default function Profile() {
       return
     }
 
-    console.log('profile saved')
-    setSuccess(true)
+    try {
+      const userId = 1
+      const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, email, phone, city, newPassword }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.message)
+        return
+      }
+
+      setSuccess(true)
+
+    } catch (err) {
+      setError('Cannot connect to server. Make sure backend is running.')
+    }
   }
 
   return (
@@ -147,7 +165,7 @@ export default function Profile() {
                   <option value="lalitpur">Lalitpur</option>
                   <option value="bhaktapur">Bhaktapur</option>
                   <option value="biratnagar">Biratnagar</option>
-                  
+                  <option value="birgunj">Birgunj</option>
                 </select>
               </div>
 
