@@ -1,6 +1,6 @@
-const { createUser, getUserByEmail, updateUser, updatePassword } = require("../model/userModel");
+import { createUser, getUserByEmail, updateUser, updatePassword } from '../model/userModel.js';
 
-const addUser = async (req, res) => {
+export const addUser = async (req, res) => {
   try {
     const { firstName, lastName, email, phone, city, password } = req.body;
 
@@ -49,7 +49,7 @@ const addUser = async (req, res) => {
   }
 };
 
-const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const { id } = req.params;
     const { firstName, lastName, email, phone, city, newPassword } = req.body;
@@ -101,5 +101,3 @@ const updateProfile = async (req, res) => {
     });
   }
 };
-
-module.exports = { addUser, updateProfile };
