@@ -5,6 +5,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import technicianRoute from './route/technicianAvaibilityRoute.js';
 
 dotenv.config();
 const app = express();
@@ -70,3 +71,5 @@ app.get('/auth/logout', (req, res) => {
 });
 
 app.listen(5000, () => console.log('Backend running on http://localhost:5000'));
+
+app.use('/api/technician', technicianRoute);
