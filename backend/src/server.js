@@ -5,13 +5,14 @@ import session from 'express-session';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
-import pool from './database/db.js';    
-import userRoute from './route/userRoute.js'; 
+import userRoute from './routes/userRoute.js'; 
+import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
@@ -33,30 +34,30 @@ app.use(passport.session());
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-passport.use(new GoogleStrategy({
-  clientID:     process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL:  "/auth/google/callback",
-}, (_accessToken, _refreshToken, profile, done) => done(null, profile)));
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+    clientID:     process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL:  "/auth/google/callback",
+  }, (_accessToken, _refreshToken, profile, done) => done(null, profile)));
+}
 
-passport.use(new FacebookStrategy({
-  clientID:     process.env.FACEBOOK_APP_ID,
-  clientSecret: process.env.FACEBOOK_APP_SECRET,
-  callbackURL:  "/auth/facebook/callback",
-  profileFields: ["id", "displayName", "email"],
-}, (_accessToken, _refreshToken, profile, done) => done(null, profile)));
+if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
+  passport.use(new FacebookStrategy({
+    clientID:     process.env.FACEBOOK_APP_ID,
+    clientSecret: process.env.FACEBOOK_APP_SECRET,
+    callbackURL:  "/auth/facebook/callback",
+    profileFields: ["id", "displayName", "email"],
+  }, (_accessToken, _refreshToken, profile, done) => done(null, profile)));
+}
 
 app.get("/", (_req, res) => {
-  console.log("Server is running");
-  res.send("The backend is running");
+  res.send("The Fixit backend is running");
 });
 
-app.get("/db-config", async (_req, res) => {
-  const result = await pool.query("SELECT * FROM students");
-  res.json(result.rows);
-});
-
-app.use("/api", userRoute);
+app.use("/api/auth", authRoutes); 
+app.use("/api", userRoute); 
+app.use("/api/admin", adminRoutes);
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 

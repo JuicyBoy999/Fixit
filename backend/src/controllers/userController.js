@@ -1,4 +1,8 @@
-import { createUser, getUserByEmail, updateUser, updatePassword } from '../model/userModel.js';
+import { createUser, getUserByEmail, updateUser, updatePassword, comparePassword } from '../models/userModel.js';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const addUser = async (req, res) => {
   try {
@@ -46,6 +50,42 @@ export const addUser = async (req, res) => {
       message: "Something went wrong",
       error: e.message,
     });
+  }
+};
+
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await getUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const isMatch = await comparePassword(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role || 'user' },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email,
+        role: user.role || 'user'
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

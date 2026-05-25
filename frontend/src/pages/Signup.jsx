@@ -41,7 +41,7 @@ export default function Signup() {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/create', {
+      const res = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, email, phone, city, password }),
@@ -64,16 +64,14 @@ export default function Signup() {
   if (submitted) {
     return (
       <div className="sg-page">
-        <div className="sg-box">
-          <div className="sg-logo">
-            <div className="sg-icon-box">⚡</div>
-            <span className="sg-brand">Fi<b>x</b>it</span>
-          </div>
-          <div className="sg-done">
-            <div className="sg-check">✓</div>
-            <h2>Account Created!</h2>
-            <p>Welcome to Fixit. You can now sign in.</p>
-            <a href="/login" className="sg-btn">Go to Sign In →</a>
+        <div className="sg-main">
+          <div className="sg-box">
+            <div className="sg-done">
+              <div className="sg-check">✓</div>
+              <h2>Account Created!</h2>
+              <p>Welcome to Fixit. You can now sign in.</p>
+              <a href="/login" className="sg-btn">Go to Sign In →</a>
+            </div>
           </div>
         </div>
       </div>
