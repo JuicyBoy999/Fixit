@@ -19,6 +19,5 @@ CREATE TABLE IF NOT EXISTS password_resets (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Optional: Create a test admin user (password: admin123)
--- INSERT INTO users (first_name, last_name, email, phone, city, password, role)
--- VALUES ('Admin', 'User', 'admin@fixit.com', '1234567890', 'New York', '$2b$10$YourHashedPasswordHere', 'admin');
+INSERT INTO users (first_name, last_name, email, phone, city, password, role)
+VALUES ('Admin', 'User', 'admin@fixit.com', '1234567890', 'New York', '$2a$12$L4UxTxFS4M9rhNh2f2.kT.v8gdUpkyB7aONOzjo2L.8HkRU0y787i', 'admin');
