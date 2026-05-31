@@ -10,6 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 import AdminLogin from './components/auth/AdminLogin';
 import RequestPasswordReset from './pages/RequestPasswordReset';
 import ResetPassword from './pages/ResetPassword';
+import CancelBooking from './pages/CancelBooking'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/book" element={<BookRepair />} />
           <Route path="/technicians" element={<BrowseTechnicians />} />
           <Route path="/calendar" element={<TechnicianCalendar />} />
+          <Route path="/cancel-booking" element={<CancelBooking />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
