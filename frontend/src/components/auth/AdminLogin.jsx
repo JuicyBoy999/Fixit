@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
 
 const styles = {
   page: {
@@ -8,7 +8,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: '#0f2140',
+    background: '#0f2140',       
     color: '#ffffff',
     fontFamily:
       'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -44,16 +44,15 @@ const styles = {
   brandName: {
     fontSize: '23px',
     fontWeight: 800,
-    letterSpacing: 0,
   },
   heading: {
-    margin: '0 0 8px',
+    margin: '0 0 12px',
     fontSize: '28px',
     lineHeight: 1.15,
     fontWeight: 800,
   },
-  copy: {
-    margin: '0 0 34px',
+  subCopy: {
+    margin: '0 0 38px',      
     color: '#a7c0df',
     fontSize: '16px',
     lineHeight: 1.5,
@@ -67,19 +66,6 @@ const styles = {
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
   },
-  inputWrap: {
-    position: 'relative',
-    marginBottom: '18px',
-  },
-  inputIcon: {
-    position: 'absolute',
-    left: '16px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    color: '#819aba',
-    fontSize: '16px',
-    lineHeight: 1,
-  },
   input: {
     width: '100%',
     minHeight: '52px',
@@ -87,10 +73,11 @@ const styles = {
     borderRadius: '9px',
     background: '#24456e',
     color: '#ffffff',
-    padding: '0 16px 0 46px',
+    padding: '0 16px',
     boxSizing: 'border-box',
     outline: 'none',
     fontSize: '16px',
+    marginBottom: '18px',
   },
   button: {
     width: '100%',
@@ -102,7 +89,7 @@ const styles = {
     cursor: 'pointer',
     fontSize: '17px',
     fontWeight: 800,
-    marginTop: '10px',
+    marginTop: '4px',
   },
   alert: {
     borderRadius: '9px',
@@ -111,96 +98,80 @@ const styles = {
     fontSize: '14px',
     lineHeight: 1.45,
   },
-  success: {
-    background: 'rgba(34, 197, 94, 0.13)',
-    border: '1px solid rgba(34, 197, 94, 0.3)',
-    color: '#86efac',
-  },
   error: {
     background: 'rgba(248, 113, 113, 0.13)',
     border: '1px solid rgba(248, 113, 113, 0.32)',
     color: '#fca5a5',
   },
-  footer: {
-    marginTop: '24px',
-    textAlign: 'center',
-    color: '#a7c0df',
-    fontSize: '15px',
-  },
-  link: {
-    color: '#38bdf8',
-    textDecoration: 'none',
-    fontWeight: 700,
-  },
 };
 
-const RequestPasswordReset = () => {
+const AdminLogin = () => {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState(null);
+  const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(null);
     setError(null);
-
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/forgot-password', { email });
-      setMessage(response.data.message);
+      await login(email, password, 'admin');
+      //can redirect the user to the admin dashboard here if needed,
+      // e.g. using useNavigate() from react-router-dom.
     } catch (err) {
-      setError(err.response?.data?.message || 'Error sending reset email');
+      setError(err.response?.data?.message || err.message || 'Login failed');
     }
   };
 
   return (
     <main style={styles.page}>
-      <section style={styles.card} aria-labelledby="reset-request-title">
+      <section style={styles.card} aria-labelledby="admin-login-title">
         <div style={styles.brand}>
           <div style={styles.brandMark}>⚡</div>
           <div style={styles.brandName}>Fixit</div>
         </div>
 
-        <h1 id="reset-request-title" style={styles.heading}>
-          Reset your password
+        <h1 id="admin-login-title" style={styles.heading}>
+          Welcome back
         </h1>
-        <p style={styles.copy}>Enter your email and we&apos;ll send you a link to get back in.</p>
+        <p style={styles.subCopy}>Sign in to manage the admin dashboard</p>
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="reset-email" style={styles.label}>
+          <label htmlFor="admin-email" style={styles.label}>
             Email
           </label>
-          <div style={styles.inputWrap}>
-            <span style={styles.inputIcon} aria-hidden="true">
-              @
-            </span>
-            <input
-              id="reset-email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={styles.input}
-            />
-          </div>
+          <input
+            id="admin-email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={styles.input}
+          />
+
+          <label htmlFor="admin-password" style={styles.label}>
+            Password
+          </label>
+          <input
+            id="admin-password"
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={styles.input}
+          />
+
+          {error && <p style={{ ...styles.alert, ...styles.error }}>{error}</p>}
 
           <button type="submit" style={styles.button}>
-            Send reset email
+            Sign In →
           </button>
         </form>
-
-        {message && <p style={{ ...styles.alert, ...styles.success }}>{message}</p>}
-        {error && <p style={{ ...styles.alert, ...styles.error }}>{error}</p>}
-
-        <div style={styles.footer}>
-          Remembered it?{' '}
-          <a href="/" style={styles.link}>
-            Back to login
-          </a>
-        </div>
       </section>
     </main>
   );
 };
 
-export default RequestPasswordReset;
+export default AdminLogin;
