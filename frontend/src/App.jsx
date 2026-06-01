@@ -11,6 +11,7 @@ import AdminLogin from './components/auth/AdminLogin';
 import RequestPasswordReset from './pages/RequestPasswordReset';
 import ResetPassword from './pages/ResetPassword';
 import CancelBooking from './pages/CancelBooking'
+import RescheduleBooking from './pages/RescheduleBooking'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/technicians" element={<BrowseTechnicians />} />
           <Route path="/calendar" element={<TechnicianCalendar />} />
           <Route path="/cancel-booking" element={<CancelBooking />} />
+          <Route path="/reschedule-booking" element={<RescheduleBooking />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
