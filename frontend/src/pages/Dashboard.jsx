@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (user) {
       return;
     }
 
@@ -18,7 +19,7 @@ function Dashboard() {
         if (!data) navigate('/login');
         else setUser(data);
       });
-  }, []);
+  }, [navigate, user]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -56,6 +57,22 @@ function Dashboard() {
           <p style={{ color:'#15803d', fontSize:13, margin:0 }}>
             Successfully signed in
           </p>
+        </div>
+
+        <div style={{ display:'grid', gap:10, marginBottom:'1.5rem' }}>
+          <button
+            onClick={() => navigate('/book-repair')}
+            style={{ width:'100%', padding:'11px', background:'#38bdf8', color:'#0f1f3d', border:'none', borderRadius:8, fontWeight:700, fontSize:14, cursor:'pointer' }}
+          >
+            Book a Repair
+          </button>
+
+          <button
+            onClick={() => navigate('/repair-history')}
+            style={{ width:'100%', padding:'11px', background:'#fff', color:'#0f1f3d', border:'1px solid #dbeafe', borderRadius:8, fontWeight:700, fontSize:14, cursor:'pointer' }}
+          >
+            View Repair History
+          </button>
         </div>
 
         <button

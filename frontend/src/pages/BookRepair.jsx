@@ -1,18 +1,41 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './BookRepair.css'
 
 export default function BookRepair() {
+  const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [deviceType, setDeviceType] = useState('')
   const [issue, setIssue] = useState('')
   const [city, setCity] = useState('')
   const [date, setDate] = useState('')
-  const [name, setName] = useState('')
+  const [name, setName] = useState(() => {
+    const storedUser = localStorage.getItem('user')
+    if (!storedUser) return ''
+
+    const user = JSON.parse(storedUser)
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim()
+  })
   const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => {
+    const storedUser = localStorage.getItem('user')
+    if (!storedUser) return ''
+
+    const user = JSON.parse(storedUser)
+    return user.email || ''
+  })
   const [address, setAddress] = useState('')
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+
+    if (!token) {
+      navigate('/login')
+    }
+  }, [navigate])
 
   function handlePhone(e) {
     const val = e.target.value.replace(/\D/g, '')
@@ -28,13 +51,48 @@ export default function BookRepair() {
     setStep(2)
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!name.trim()) { setError('Please enter your full name.'); return }
     if (phone.length !== 10) { setError('Phone number must be exactly 10 digits.'); return }
     if (!email.trim()) { setError('Please enter your email address.'); return }
     setError('')
-    setDone(true)
+    setSaving(true)
+
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('http://localhost:5000/api/repair', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          deviceName: deviceType,
+          issueDescription: issue,
+          city,
+          preferredDate: date,
+          contactName: name,
+          contactPhone: phone,
+          contactEmail: email,
+          address,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.message || 'Unable to book your repair right now.')
+        if (res.status === 401) navigate('/login')
+        return
+      }
+
+      setDone(true)
+    } catch {
+      setError('Cannot connect to server. Make sure backend is running.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const today = new Date().toISOString().split('T')[0]
@@ -254,7 +312,7 @@ export default function BookRepair() {
               </div>
 
               <button type="submit" className="br-btn">
-                Confirm Booking
+                {saving ? 'Saving Booking...' : 'Confirm Booking'}
               </button>
 
               <p className="br-back" onClick={() => { setStep(1); setError('') }}>
