@@ -9,6 +9,8 @@ import RequestPasswordReset from './pages/RequestPasswordReset';
 import ResetPassword from './pages/ResetPassword';
 import RepairHistory from './pages/RepairHistory';
 import BookRepair from './pages/BookRepair';
+import TechnicianDirectory from './pages/TechnicianDirectory';
+import TechnicianProfile from './pages/TechnicianProfile';
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/book-repair" element={<BookRepair />} />
           <Route path="/repair-history" element={<RepairHistory />} />
+          <Route path="/technicians" element={<TechnicianDirectory />} />
+          <Route path="/technicians/:id" element={<TechnicianProfile />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -73,6 +73,13 @@ function Dashboard() {
           >
             View Repair History
           </button>
+
+          <button
+            onClick={() => navigate('/technicians')}
+            style={{ width:'100%', padding:'11px', background:'#152a4a', color:'#e0f2fe', border:'1px solid #24456e', borderRadius:8, fontWeight:700, fontSize:14, cursor:'pointer' }}
+          >
+            Choose a Technician
+          </button>
         </div>
 
         <button

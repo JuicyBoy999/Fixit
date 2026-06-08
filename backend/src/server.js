@@ -9,6 +9,7 @@ import userRoute from './routes/userRoute.js';
 import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import repairRoutes from './routes/repairRoutes.js';
+import technicianRoutes from './routes/technicianRoutes.js';
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api", userRoute); 
 app.use("/api/admin", adminRoutes);
 app.use("/api/repair", repairRoutes);
+app.use("/api/technicians", technicianRoutes);
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
