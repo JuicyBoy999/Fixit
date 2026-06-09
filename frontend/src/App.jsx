@@ -12,6 +12,8 @@ import RequestPasswordReset from './pages/RequestPasswordReset';
 import ResetPassword from './pages/ResetPassword';
 import CancelBooking from './pages/CancelBooking'
 import RescheduleBooking from './pages/RescheduleBooking'
+import Notifications from './pages/Notifications'
+import AppointmentReminder from './pages/AppointmentReminder'
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
           <Route path="/calendar" element={<TechnicianCalendar />} />
           <Route path="/cancel-booking" element={<CancelBooking />} />
           <Route path="/reschedule-booking" element={<RescheduleBooking />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/appointment-reminder" element={<AppointmentReminder />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
