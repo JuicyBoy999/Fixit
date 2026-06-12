@@ -1,4 +1,39 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Login failed');
+        return;
+      }
+
+      // Store token (you might want to use context or localStorage)
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Cannot connect to server. Make sure backend is running.');
+    }
+  };
+
   return (
     <div
       style={{
@@ -80,153 +115,168 @@ function Login() {
           Sign in to book your next repair
         </p>
 
-        {/* Email */}
-        <label
-          style={{
-            color: '#94a3b8',
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: 1,
-          }}
-        >
-          EMAIL
-        </label>
+        {error && (
+          <p style={{ color: '#ef4444', fontSize: 13, marginBottom: '1rem', textAlign: 'center' }}>
+            {error}
+          </p>
+        )}
 
-        <div
-          style={{
-            position: 'relative',
-            marginTop: 6,
-            marginBottom: 12,
-          }}
-        >
-          <span
-            style={{
-              position: 'absolute',
-              left: 12,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#64748b',
-            }}
-          >
-            ✉
-          </span>
-
-          <input
-            type="email"
-            placeholder="you@example.com"
-            style={{
-              width: '100%',
-              padding: '11px 11px 11px 36px',
-              background: '#1e3a5f',
-              border: '1px solid #2d4f7c',
-              borderRadius: 8,
-              color: '#fff',
-              fontSize: 14,
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-        </div>
-
-        {/* Password */}
-        <label
-          style={{
-            color: '#94a3b8',
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: 1,
-          }}
-        >
-          PASSWORD
-        </label>
-
-        <div
-          style={{
-            position: 'relative',
-            marginTop: 6,
-            marginBottom: 8,
-          }}
-        >
-          <span
-            style={{
-              position: 'absolute',
-              left: 12,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#64748b',
-            }}
-          >
-            🔒
-          </span>
-
-          <input
-            type="password"
-            placeholder="••••••••••••••"
-            style={{
-              width: '100%',
-              padding: '11px 11px 11px 36px',
-              background: '#1e3a5f',
-              border: '1px solid #2d4f7c',
-              borderRadius: 8,
-              color: '#fff',
-              fontSize: 14,
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-        </div>
-
-        {/* Remember me & Forgot */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.5rem',
-          }}
-        >
+        <form onSubmit={handleSubmit}>
+          {/* Email */}
           <label
             style={{
               color: '#94a3b8',
-              fontSize: 13,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: 1,
             }}
           >
-            <input type="checkbox" />
-            Remember me
+            EMAIL
           </label>
 
-          <a
-            href="#"
+          <div
             style={{
-              color: '#38bdf8',
-              fontSize: 13,
-              textDecoration: 'none',
+              position: 'relative',
+              marginTop: 6,
+              marginBottom: 12,
             }}
           >
-            Forgot password?
-          </a>
-        </div>
+            <span
+              style={{
+                position: 'absolute',
+                left: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#64748b',
+              }}
+            >
+              ✉
+            </span>
 
-        {/* Sign In Button */}
-        <button
-          style={{
-            width: '100%',
-            padding: '12px',
-            background: '#38bdf8',
-            color: '#0f1f3d',
-            border: 'none',
-            borderRadius: 8,
-            fontWeight: 700,
-            fontSize: 15,
-            cursor: 'pointer',
-            marginBottom: 12,
-          }}
-        >
-          Sign In →
-        </button>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '11px 11px 11px 36px',
+                background: '#1e3a5f',
+                border: '1px solid #2d4f7c',
+                borderRadius: 8,
+                color: '#fff',
+                fontSize: 14,
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+
+          {/* Password */}
+          <label
+            style={{
+              color: '#94a3b8',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: 1,
+            }}
+          >
+            PASSWORD
+          </label>
+
+          <div
+            style={{
+              position: 'relative',
+              marginTop: 6,
+              marginBottom: 8,
+            }}
+          >
+            <span
+              style={{
+                position: 'absolute',
+                left: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#64748b',
+              }}
+            >
+              🔒
+            </span>
+
+            <input
+              type="password"
+              placeholder="••••••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '11px 11px 11px 36px',
+                background: '#1e3a5f',
+                border: '1px solid #2d4f7c',
+                borderRadius: 8,
+                color: '#fff',
+                fontSize: 14,
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+
+          {/* Remember me & Forgot */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1.5rem',
+            }}
+          >
+            <label
+              style={{
+                color: '#94a3b8',
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <input type="checkbox" />
+              Remember me
+            </label>
+
+            <a
+              href="/forgot-password"
+              style={{
+                color: '#38bdf8',
+                fontSize: 13,
+                textDecoration: 'none',
+              }}
+            >
+              Forgot password?
+            </a>
+          </div>
+
+          {/* Sign In Button */}
+          <button
+            type="submit"
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: '#38bdf8',
+              color: '#0f1f3d',
+              border: 'none',
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 15,
+              cursor: 'pointer',
+              marginBottom: 12,
+            }}
+          >
+            Sign In →
+          </button>
+        </form>
 
         {/* Links */}
         <p
@@ -239,7 +289,7 @@ function Login() {
         >
           Don't have an account?{' '}
           <a
-            href="#"
+            href="/signup"
             style={{
               color: '#38bdf8',
               textDecoration: 'none',
@@ -323,7 +373,6 @@ function Login() {
               fill="#EA4335"
             />
           </svg>
-
           Sign in with Google
         </a>
 

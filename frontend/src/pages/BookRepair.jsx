@@ -191,7 +191,7 @@ export default function BookRepair() {
                 </div>
               </div>
 
-              {/* Slot picker — appears once a date is chosen */}
+              {}
               {date && (
                 <div className="br-field">
                   <div className="br-field-label">
