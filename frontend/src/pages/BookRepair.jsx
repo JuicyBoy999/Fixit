@@ -22,14 +22,14 @@ export default function BookRepair() {
   }
 
   function handleStep1() {
-    if (!deviceType) { setError('Please select a device type.'); return }
-    if (!issue.trim()) { setError('Please describe the issue.'); return }
-    if (!city) { setError('Please select a city.'); return }
-    if (!date) { setError('Please select a preferred date.'); return }
-    if (!selectedSlot) { setError('Please select an available time slot.'); return }
-    setError('')
-    setStep(2)
-  }
+  if (!deviceType) { setError('Please select a device type.'); return }
+  if (!issue.trim()) { setError('Please describe the issue.'); return }
+  if (!city) { setError('Please select a city.'); return }
+  if (!date) { setError('Please select a preferred date.'); return }
+  if (!selectedSlot) { setError('Please select an available time slot.'); return }
+  setError('')
+  setStep(2)
+}
 
   function handleSubmit(e) {
     e.preventDefault()

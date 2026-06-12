@@ -71,22 +71,21 @@ export const getSlotsForDate = async (technicianId, dateStr) => {
      WHERE technician_id = $1 AND unavailable_date = $2`,
     [technicianId, dateStr]
   );
-  if (blockRes.rowCount > 0) return buildSlots(null, null); // all greyed
+  if (blockRes.rowCount > 0) return buildSlots(null, null);
 
-  const date = new Date(dateStr);
-  const dayOfWeek = date.getUTCDay();
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const dayOfWeek = new Date(year, month - 1, day).getDay();
 
   const hoursRes = await pool.query(
     `SELECT start_time, end_time FROM technician_working_hours
      WHERE technician_id = $1 AND day_of_week = $2 AND is_active = TRUE`,
     [technicianId, dayOfWeek]
   );
-  if (hoursRes.rowCount === 0) return buildSlots(null, null); // no hours set → all greyed
+  if (hoursRes.rowCount === 0) return buildSlots(null, null);
 
   const { start_time, end_time } = hoursRes.rows[0];
   return buildSlots(start_time, end_time);
 };
-
 function buildSlots(startTime, endTime) {
   const slots = [];
   for (let h = 8; h < 18; h++) {
