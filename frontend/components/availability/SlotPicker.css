@@ -1,0 +1,70 @@
+.sp-wrapper {
+  margin-top: 1rem;
+}
+ 
+.sp-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f1f3d;
+  margin-bottom: 10px;
+}
+ 
+.sp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+}
+ 
+.sp-slot {
+  padding: 9px 4px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1.5px solid #bfdbfe;
+  background: #f0f7ff;
+  color: #0f1f3d;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+ 
+.sp-slot:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #0f1f3d;
+}
+ 
+/* Greyed-out unavailable slot */
+.sp-slot--grey {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+ 
+/* Selected slot */
+.sp-slot--selected {
+  background: #0f1f3d;
+  border-color: #0f1f3d;
+  color: #fff;
+}
+ 
+.sp-unavail-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d1d5db;
+  margin: 3px auto 0;
+}
+ 
+.sp-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 6px;
+}
+ 
+.sp-hint--err {
+  color: #ef4444;
+}
+ 
