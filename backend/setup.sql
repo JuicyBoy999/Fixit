@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS technician_profiles (
     skills TEXT[] DEFAULT '{}',
     location VARCHAR(100),
     years_experience INTEGER DEFAULT 0,
+    hourly_rate DECIMAL(10,2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -78,26 +79,28 @@ CREATE TABLE IF NOT EXISTS technician_reviews (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO technician_profiles (full_name, title, bio, skills, location, years_experience)
+INSERT INTO technician_profiles (full_name, title, bio, skills, location, years_experience, hourly_rate)
 SELECT
     'Aarav Shrestha',
     'Senior Mobile and Laptop Repair Specialist',
     'Aarav specializes in board-level diagnostics, screen replacement, charging faults, and water damage recovery. He focuses on clear estimates and tidy same-day service.',
     ARRAY['Smartphone repair','Laptop diagnostics','Board repair','Data recovery'],
     'Kathmandu',
-    6
+    6,
+    800.00
 WHERE NOT EXISTS (
     SELECT 1 FROM technician_profiles WHERE full_name = 'Aarav Shrestha'
 );
 
-INSERT INTO technician_profiles (full_name, title, bio, skills, location, years_experience)
+INSERT INTO technician_profiles (full_name, title, bio, skills, location, years_experience, hourly_rate)
 SELECT
     'Maya Gurung',
     'Home Appliance and TV Technician',
     'Maya handles LED TV, refrigerator, washing machine, and small appliance issues with a strong focus on warranty-safe parts and preventive care.',
     ARRAY['TV repair','Home appliances','Power supply diagnosis','Preventive maintenance'],
     'Lalitpur',
-    5
+    5,
+    1000.00
 WHERE NOT EXISTS (
     SELECT 1 FROM technician_profiles WHERE full_name = 'Maya Gurung'
 );
