@@ -9,6 +9,7 @@ import RequestPasswordReset from './pages/RequestPasswordReset';
 import ResetPassword from './pages/ResetPassword';
 import SetAvailability from './pages/SetAvailability';
 import BookRepair from './pages/BookRepair';
+import TechnicianDashboard from './pages/TechnicianDashboard';
 
 function App() {
   return (
@@ -25,7 +26,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/availability" element={<SetAvailability />} />
           <Route path="/book-repair" element={<BookRepair />} />
-
+          <Route path="/technician-dashboard" element={<TechnicianDashboard />} />    
         </Routes>
       </BrowserRouter>
     </AuthProvider>
