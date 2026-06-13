@@ -6,6 +6,7 @@ import {
   addUnavailableDate,
   removeUnavailableDate,
   getSlotsForDate,
+  getTechniciansWithAvailability
 } from '../models/availabilityModel.js';
 
 export const fetchWorkingHours = async (req, res) => {
@@ -91,6 +92,14 @@ export const fetchSlots = async (req, res) => {
 
     const slots = await getSlotsForDate(technicianId, date);
     return res.status(200).json({ date, slots });
+  } catch (e) {
+    res.status(500).json({ message: 'Something went wrong', error: e.message });
+  }
+};
+export const fetchTechnicians = async (req, res) => {
+  try {
+    const technicians = await getTechniciansWithAvailability();
+    return res.status(200).json({ technicians });
   } catch (e) {
     res.status(500).json({ message: 'Something went wrong', error: e.message });
   }

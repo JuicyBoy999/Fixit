@@ -13,20 +13,15 @@ export default function SlotPicker({ technicianId, date, onSelect, selectedSlot 
     setError(null);
 
     const token = localStorage.getItem('token');
-    console.log('token in SlotPicker:', token);
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
     fetch(
       `http://localhost:5000/api/availability/${technicianId}/slots?date=${date}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }
-      }
+      { headers }
     )
       .then(r => r.json())
       .then(data => {
-        console.log('slots data:', data);
         if (data.slots) setSlots(data.slots);
         else setError('Could not load slots.');
       })

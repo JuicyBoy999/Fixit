@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './BookRepair.css'
 import SlotPicker from '../components/availability/SlotPicker'
 
@@ -15,6 +15,17 @@ export default function BookRepair() {
   const [address, setAddress] = useState('')
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [technicians, setTechnicians] = useState([])
+  const [technicianId, setTechnicianId] = useState('')
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/availability/technicians')
+      .then(r => r.json())
+      .then(data => {
+        if (data.technicians) setTechnicians(data.technicians)
+      })
+      .catch(() => {})
+  }, [])
 
   function handlePhone(e) {
     const val = e.target.value.replace(/\D/g, '')
@@ -22,14 +33,15 @@ export default function BookRepair() {
   }
 
   function handleStep1() {
-  if (!deviceType) { setError('Please select a device type.'); return }
-  if (!issue.trim()) { setError('Please describe the issue.'); return }
-  if (!city) { setError('Please select a city.'); return }
-  if (!date) { setError('Please select a preferred date.'); return }
-  if (!selectedSlot) { setError('Please select an available time slot.'); return }
-  setError('')
-  setStep(2)
-}
+    if (!deviceType) { setError('Please select a device type.'); return }
+    if (!issue.trim()) { setError('Please describe the issue.'); return }
+    if (!city) { setError('Please select a city.'); return }
+    if (!technicianId) { setError('Please select a technician.'); return }
+    if (!date) { setError('Please select a preferred date.'); return }
+    if (!selectedSlot) { setError('Please select an available time slot.'); return }
+    setError('')
+    setStep(2)
+  }
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -66,6 +78,10 @@ export default function BookRepair() {
               <div className="br-confirm-row">
                 <span>City</span>
                 <span>{city}</span>
+              </div>
+              <div className="br-confirm-row">
+                <span>Technician</span>
+                <span>{technicians.find(t => String(t.id) === String(technicianId))?.first_name} {technicians.find(t => String(t.id) === String(technicianId))?.last_name}</span>
               </div>
               <div className="br-confirm-row">
                 <span>Date</span>
@@ -191,15 +207,33 @@ export default function BookRepair() {
                 </div>
               </div>
 
-              {}
-              {date && (
+              <div className="br-field">
+                <div className="br-field-label">
+                  <span className="br-field-icon">🔧</span>
+                  SELECT TECHNICIAN
+                </div>
+                <select
+                  className="br-input"
+                  value={technicianId}
+                  onChange={e => { setTechnicianId(e.target.value); setSelectedSlot('') }}
+                >
+                  <option value="" disabled>Select a technician...</option>
+                  {technicians.map(t => (
+                    <option key={t.id} value={t.id}>
+                      {t.first_name} {t.last_name} — {t.city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {date && technicianId && (
                 <div className="br-field">
                   <div className="br-field-label">
                     <span className="br-field-icon">🕐</span>
                     PREFERRED TIME
                   </div>
                   <SlotPicker
-                    technicianId={1}
+                    technicianId={technicianId}
                     date={date}
                     selectedSlot={selectedSlot}
                     onSelect={setSelectedSlot}
