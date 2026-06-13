@@ -1,0 +1,79 @@
+import pool from '../config/db.js';
+import transporter from '../config/mailer.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+/**
+ * Find technicians matching the repair request city and device type (skill).
+ * @param {string} city - The city of the repair request.
+ * @param {string} deviceName - The name of the device (used to match skills).
+ */
+export const getMatchingTechnicians = async (city, deviceName) => {
+  // Simple matching: city must match exactly, and deviceName should be partially matched in skills array
+  // In a real app, we might use more sophisticated fuzzy matching or categories.
+  const result = await pool.query(
+    `SELECT tp.id, u.email, tp.full_name
+     FROM technician_profiles tp
+     JOIN users u ON tp.user_id = u.id
+     WHERE tp.location = $1 
+     AND EXISTS (
+       SELECT 1 FROM unnest(tp.skills) s 
+       WHERE $2 ILIKE '%' || s || '%' OR s ILIKE '%' || $2 || '%'
+     )`,
+    [city, deviceName]
+  );
+  return result.rows;
+};
+
+/**
+ * Send notification emails to matching technicians.
+ */
+export const notifyTechnicians = async (repair) => {
+  const technicians = await getMatchingTechnicians(repair.city, repair.device_name);
+  
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const requestUrl = `${frontendUrl}/technicians/repair-requests/${repair.id}`;
+
+  const emailPromises = technicians.map(tech => {
+    return transporter.sendMail({
+      from: `"FixIt Notifications" <${process.env.EMAIL_FROM}>`,
+      to: tech.email,
+      subject: `New Repair Request: ${repair.device_name} in ${repair.city}`,
+      html: `
+        <div style="background-color: #0d1117; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 40px; border-radius: 16px; max-width: 600px; margin: 20px auto; border: 1px solid #1e2a3a;">
+          <div style="display: flex; align-items: center; margin-bottom: 24px;">
+            <div style="width: 38px; height: 38px; background: #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #0d1117; font-weight: bold; margin-right: 12px;">F</div>
+            <span style="font-size: 20px; font-weight: 500;">Fix<b>It</b></span>
+          </div>
+          
+          <h1 style="font-size: 24px; margin-bottom: 16px; color: #fff;">New Request Nearby!</h1>
+          <p style="color: #6b7a8d; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+            Hello ${tech.full_name}, a new repair request has been submitted in <b>${repair.city}</b> that matches your expertise.
+          </p>
+          
+          <div style="background: #111827; border: 1px solid #1e2d40; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+            <p style="margin: 0 0 8px; color: #8b9ab0; font-size: 12px; text-transform: uppercase; font-weight: 600;">Device</p>
+            <p style="margin: 0 0 16px; font-size: 18px; color: #fff;">${repair.device_name}</p>
+            
+            <p style="margin: 0 0 8px; color: #8b9ab0; font-size: 12px; text-transform: uppercase; font-weight: 600;">Issue</p>
+            <p style="margin: 0; color: #fff; line-height: 1.4;">${repair.issue_description}</p>
+          </div>
+          
+          <a href="${requestUrl}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; background: #38bdf8; color: #0d1117; padding: 14px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px;">View Request Details</a>
+          
+          <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #3d5068;">
+            You are receiving this because your profile matches this request's location and skills.
+          </p>
+        </div>
+      `
+    });
+  });
+
+  try {
+    await Promise.all(emailPromises);
+    console.log(`Dispatched ${technicians.length} notification emails for repair ID ${repair.id}`);
+  } catch (error) {
+    console.error('Error dispatching technician notifications:', error);
+  }
+};

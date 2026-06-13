@@ -11,6 +11,7 @@ import RepairHistory from './pages/RepairHistory';
 import BookRepair from './pages/BookRepair';
 import TechnicianDirectory from './pages/TechnicianDirectory';
 import TechnicianProfile from './pages/TechnicianProfile';
+import RepairRequestDetails from './pages/RepairRequestDetails';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/book-repair" element={<BookRepair />} />
           <Route path="/repair-history" element={<RepairHistory />} />
           <Route path="/technicians" element={<TechnicianDirectory />} />
+          <Route path="/technicians/repair-requests/:id" element={<RepairRequestDetails />} />
           <Route path="/technicians/:id" element={<TechnicianProfile />} />
         </Routes>
       </BrowserRouter>

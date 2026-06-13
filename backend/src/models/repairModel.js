@@ -1,5 +1,15 @@
 import pool from '../config/db.js';
 
+export const getRepairById = async (id) => {
+  const result = await pool.query(
+    `SELECT id, user_id, device_name, issue_description, city, preferred_date, contact_name, contact_phone, contact_email, address, technician_name, status, cost, created_at
+     FROM repairs 
+     WHERE id = $1`,
+    [id]
+  );
+  return result.rows[0];
+};
+
 export const createRepair = async ({
   userId,
   deviceName,
