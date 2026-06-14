@@ -2,13 +2,9 @@ import pool from '../config/db.js';
 
 export const listRepairRequests = async (req, res) => {
   try {
-    const technicianId = req.user?.id;
-    if (!technicianId) return res.status(401).json({ error: 'Unauthorized' });
-
     const { rows } = await pool.query(
-      `SELECT * FROM repair_requests WHERE technician_id = $1 ORDER BY created_at DESC`,
-      [technicianId]
-    );
+    `SELECT * FROM repair_requests ORDER BY created_at DESC`
+);
     res.json({ requests: rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
