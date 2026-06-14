@@ -28,14 +28,36 @@ export default function BookRepair() {
     setStep(2)
   }
 
-  function handleSubmit(e) {
-    e.preventDefault()
-    if (!name.trim()) { setError('Please enter your full name.'); return }
-    if (phone.length !== 10) { setError('Phone number must be exactly 10 digits.'); return }
-    if (!email.trim()) { setError('Please enter your email address.'); return }
-    setError('')
+async function handleSubmit(e) {
+  e.preventDefault()
+  if (!name.trim()) { setError('Please enter your full name.'); return }
+  if (phone.length !== 10) { setError('Phone number must be exactly 10 digits.'); return }
+  if (!email.trim()) { setError('Please enter your email address.'); return }
+  setError('')
+
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+
+  try {
+    const res = await fetch('http://localhost:5000/api/repair-requests/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer_id:       storedUser.id || null,
+        technician_id:     null,
+        device_type:       deviceType,
+        fault_description: issue,
+        preferred_date:    date,
+        customer_area:     city,
+        photo_url:         null,
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setError(data.error || 'Booking failed. Try again.'); return }
     setDone(true)
+  } catch {
+    setError('Network error. Please try again.')
   }
+}
 
   const today = new Date().toISOString().split('T')[0]
 

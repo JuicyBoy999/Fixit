@@ -5,9 +5,11 @@ import session from 'express-session';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
-import userRoute from './src/routes/userRoute.js'; 
-import authRoutes from './src/routes/authRoutes.js';
-import adminRoutes from './src/routes/adminRoutes.js';
+import userRoute from './routes/userRoute.js'; 
+import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import './models/repairRequestModel.js';
+import repairRequestRoute from './routes/repairRequestRoute.js';
 
 dotenv.config();
 
@@ -56,6 +58,7 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes); 
+app.use("/api/repair-requests", repairRequestRoute);
 app.use("/api", userRoute); 
 app.use("/api/admin", adminRoutes);
 

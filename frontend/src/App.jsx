@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import AdminLogin from './components/auth/AdminLogin';
 import RequestPasswordReset from './pages/RequestPasswordReset';
 import ResetPassword from './pages/ResetPassword';
+import RepairRequests from './pages/RepairRequests';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/repair-requests" element={<RepairRequests />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
