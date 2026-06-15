@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './Profile.css'
 
 const original = {
@@ -10,6 +11,9 @@ const original = {
 }
 
 export default function Profile() {
+  const navigate = useNavigate()
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+  const dashboardPath = storedUser.role === 'technician' ? '/technician-dashboard' : '/dashboard'
 
   const [firstName, setFirstName] = useState(original.firstName)
   const [lastName, setLastName] = useState(original.lastName)
@@ -87,7 +91,7 @@ export default function Profile() {
           <div className="pf-icon-box">⚡</div>
           <span>Fi<b>x</b>it</span>
         </div>
-        <a href="/" className="pf-back">← Back to Home</a>
+        <button className="pf-back" onClick={() => navigate(dashboardPath)}>← Dashboard</button>
       </nav>
 
       <main className="pf-main">
