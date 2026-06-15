@@ -11,6 +11,7 @@ import ResetPassword from './pages/ResetPassword';
 import ServiceArea from './pages/ServiceArea';
 import SetAvailability from './pages/SetAvailability';
 import BookRepair from './pages/BookRepair';
+import TechnicianDashboard from './pages/TechnicianDashboard';
 
 
 function App() {
@@ -30,7 +31,7 @@ function App() {
           <Route path="/service-area" element={<ServiceArea />} />
           <Route path="/availability" element={<SetAvailability />} />
           <Route path="/book-repair" element={<BookRepair />} />
-
+          <Route path="/technician-dashboard" element={<TechnicianDashboard />} />    
         </Routes>
       </BrowserRouter>
     </AuthProvider>
