@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './BookRepair.css'
+import SlotPicker from '../components/availability/SlotPicker'
 
 export default function BookRepair() {
   const [step, setStep] = useState(1)
@@ -7,12 +8,24 @@ export default function BookRepair() {
   const [issue, setIssue] = useState('')
   const [city, setCity] = useState('')
   const [date, setDate] = useState('')
+  const [selectedSlot, setSelectedSlot] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [address, setAddress] = useState('')
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [technicians, setTechnicians] = useState([])
+  const [technicianId, setTechnicianId] = useState('')
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/availability/technicians')
+      .then(r => r.json())
+      .then(data => {
+        if (data.technicians) setTechnicians(data.technicians)
+      })
+      .catch(() => {})
+  }, [])
 
   function handlePhone(e) {
     const val = e.target.value.replace(/\D/g, '')
@@ -23,7 +36,9 @@ export default function BookRepair() {
     if (!deviceType) { setError('Please select a device type.'); return }
     if (!issue.trim()) { setError('Please describe the issue.'); return }
     if (!city) { setError('Please select a city.'); return }
+    if (!technicianId) { setError('Please select a technician.'); return }
     if (!date) { setError('Please select a preferred date.'); return }
+    if (!selectedSlot) { setError('Please select an available time slot.'); return }
     setError('')
     setStep(2)
   }
@@ -65,8 +80,16 @@ export default function BookRepair() {
                 <span>{city}</span>
               </div>
               <div className="br-confirm-row">
+                <span>Technician</span>
+                <span>{technicians.find(t => String(t.id) === String(technicianId))?.first_name} {technicians.find(t => String(t.id) === String(technicianId))?.last_name}</span>
+              </div>
+              <div className="br-confirm-row">
                 <span>Date</span>
                 <span>{date}</span>
+              </div>
+              <div className="br-confirm-row">
+                <span>Time</span>
+                <span>{selectedSlot}</span>
               </div>
               <div className="br-confirm-row">
                 <span>Name</span>
@@ -150,7 +173,7 @@ export default function BookRepair() {
                 <div className="br-field">
                   <div className="br-field-label">
                     <span className="br-field-icon">📍</span>
-                    City
+                    CITY
                   </div>
                   <select
                     className="br-input"
@@ -179,10 +202,49 @@ export default function BookRepair() {
                     className="br-input"
                     value={date}
                     min={today}
-                    onChange={e => setDate(e.target.value)}
+                    onChange={e => { setDate(e.target.value); setSelectedSlot('') }}
                   />
                 </div>
               </div>
+
+              <div className="br-field">
+                <div className="br-field-label">
+                  <span className="br-field-icon">🔧</span>
+                  SELECT TECHNICIAN
+                </div>
+                <select
+                  className="br-input"
+                  value={technicianId}
+                  onChange={e => { setTechnicianId(e.target.value); setSelectedSlot('') }}
+                >
+                  <option value="" disabled>Select a technician...</option>
+                  {technicians.map(t => (
+                    <option key={t.id} value={t.id}>
+                      {t.first_name} {t.last_name} — {t.city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {date && technicianId && (
+                <div className="br-field">
+                  <div className="br-field-label">
+                    <span className="br-field-icon">🕐</span>
+                    PREFERRED TIME
+                  </div>
+                  <SlotPicker
+                    technicianId={technicianId}
+                    date={date}
+                    selectedSlot={selectedSlot}
+                    onSelect={setSelectedSlot}
+                  />
+                  {selectedSlot && (
+                    <small className="br-hint" style={{ color: '#15803d' }}>
+                      ✓ Selected: {selectedSlot}
+                    </small>
+                  )}
+                </div>
+              )}
 
               <button className="br-btn" onClick={handleStep1}>
                 Continue

@@ -5,11 +5,14 @@ import session from 'express-session';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
+
 import userRoute from './routes/userRoute.js'; 
 import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import './models/serviceAreaModel.js';
 import serviceAreaRoute from './routes/serviceAreaRoute.js';
+import availabilityRoutes from './routes/availabilityRoutes.js';
+
 
 dotenv.config();
 
@@ -24,7 +27,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,       // set true in production (HTTPS)
+    secure: false,
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
   },
@@ -57,20 +60,22 @@ app.get("/", (_req, res) => {
   res.send("The Fixit backend is running");
 });
 
-app.use("/api/auth", authRoutes); 
-app.use("/api", userRoute); 
+app.use("/api/auth", authRoutes);
+app.use("/api", userRoute);
 app.use("/api/admin", adminRoutes);
+
 app.use("/api/service-area", serviceAreaRoute);
 
-app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+app.use("/api/availability", availabilityRoutes);
 
+
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", {
   successRedirect: "http://localhost:5173/dashboard",
   failureRedirect:  "http://localhost:5173/login",
 }));
 
 app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email"] }));
-
 app.get("/auth/facebook/callback", passport.authenticate("facebook", {
   successRedirect: "http://localhost:5173/dashboard",
   failureRedirect:  "http://localhost:5173/login",
