@@ -6,13 +6,15 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 
+
 import userRoute from './routes/userRoute.js'; 
 import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import './models/serviceAreaModel.js';
 import serviceAreaRoute from './routes/serviceAreaRoute.js';
 import availabilityRoutes from './routes/availabilityRoutes.js';
-
+import './models/repairRequestModel.js';
+import repairRequestRoute from './routes/repairRequestRoute.js';
 
 dotenv.config();
 
@@ -60,8 +62,10 @@ app.get("/", (_req, res) => {
   res.send("The Fixit backend is running");
 });
 
+
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoute);
+app.use("/api/repair-requests", repairRequestRoute);
 app.use("/api/admin", adminRoutes);
 
 app.use("/api/service-area", serviceAreaRoute);
