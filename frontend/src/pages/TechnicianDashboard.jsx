@@ -5,7 +5,7 @@ import './TechnicianDashboard.css';
 export default function TechnicianDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [stats, setStats] = useState({ totalSlots: 0, activeDays: 0, blockedDates: 0 });
+  const [stats, setStats] = useState({ totalSlots: 0, activeDays: 0, blockedDates: 0, pendingRequests: 0 });
   const [upcomingSlots, setUpcomingSlots] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,13 +25,15 @@ export default function TechnicianDashboard() {
     Promise.all([
       fetch(`http://localhost:5000/api/availability/${techId}/hours`, { headers }).then(r => r.json()),
       fetch(`http://localhost:5000/api/availability/${techId}/unavailable`, { headers }).then(r => r.json()),
+      fetch(`http://localhost:5000/api/repair-requests/list`, { headers }).then(r => r.json()),
     ])
-      .then(([hoursData, unavailData]) => {
+      .then(([hoursData, unavailData, requestsData]) => {
         const hours = hoursData.hours || [];
         const blocked = unavailData.dates || [];
+        const requests = requestsData.requests || [];
         const activeDays = hours.filter(h => h.is_active).length;
+        const pendingRequests = requests.filter(r => r.status === 'pending').length;
 
-        
         const slots = [];
         for (let i = 0; i < 7; i++) {
           const d = new Date();
@@ -49,11 +51,7 @@ export default function TechnicianDashboard() {
           });
         }
 
-        setStats({
-          activeDays,
-          blockedDates: blocked.length,
-          totalSlots: activeDays * 8,
-        });
+        setStats({ activeDays, blockedDates: blocked.length, totalSlots: activeDays * 8, pendingRequests });
         setUpcomingSlots(slots);
       })
       .catch(() => {})
@@ -71,7 +69,6 @@ export default function TechnicianDashboard() {
   return (
     <div className="td-page">
 
-      {}
       <aside className="td-sidebar">
         <div className="td-logo">
           <span className="td-logo-icon">⚡</span>
@@ -83,9 +80,20 @@ export default function TechnicianDashboard() {
             <span className="td-nav-icon">⊞</span>
             Dashboard
           </button>
+          <button className="td-nav-item" onClick={() => navigate('/repair-requests')}>
+            <span className="td-nav-icon">🔧</span>
+            Repair Requests
+            {stats.pendingRequests > 0 && (
+              <span className="td-nav-badge">{stats.pendingRequests}</span>
+            )}
+          </button>
           <button className="td-nav-item" onClick={() => navigate('/availability')}>
             <span className="td-nav-icon">📅</span>
             Availability
+          </button>
+          <button className="td-nav-item" onClick={() => navigate('/service-area')}>
+            <span className="td-nav-icon">📍</span>
+            Service Area
           </button>
           <button className="td-nav-item" onClick={() => navigate('/profile')}>
             <span className="td-nav-icon">👤</span>
@@ -98,21 +106,18 @@ export default function TechnicianDashboard() {
         </button>
       </aside>
 
-      {}
       <main className="td-main">
 
-        {}
         <header className="td-header">
           <div>
             <h1 className="td-heading">Welcome back, {user?.firstName || 'Technician'}</h1>
-            <p className="td-subheading">Here's your availability overview</p>
+            <p className="td-subheading">Here's your overview</p>
           </div>
           <div className="td-avatar">
             {(user?.firstName?.[0] || 'T').toUpperCase()}
           </div>
         </header>
 
-        {}
         <div className="td-stats">
           <div className="td-stat-card">
             <div className="td-stat-icon td-stat-icon--blue">📅</div>
@@ -135,9 +140,15 @@ export default function TechnicianDashboard() {
               <div className="td-stat-label">Blocked Dates</div>
             </div>
           </div>
+          <div className="td-stat-card">
+            <div className="td-stat-icon td-stat-icon--orange">🔧</div>
+            <div>
+              <div className="td-stat-value">{stats.pendingRequests}</div>
+              <div className="td-stat-label">Pending Requests</div>
+            </div>
+          </div>
         </div>
 
-        {}
         <section className="td-card">
           <div className="td-card-header">
             <h2 className="td-card-title">Next 7 Days</h2>
@@ -159,10 +170,14 @@ export default function TechnicianDashboard() {
           </div>
         </section>
 
-        {}
         <section className="td-card">
           <h2 className="td-card-title">Quick Actions</h2>
           <div className="td-actions">
+            <button className="td-action-btn" onClick={() => navigate('/repair-requests')}>
+              <span className="td-action-icon">🔧</span>
+              <span className="td-action-label">View Repair Requests</span>
+              <span className="td-action-arrow">→</span>
+            </button>
             <button className="td-action-btn" onClick={() => navigate('/availability')}>
               <span className="td-action-icon">🕐</span>
               <span className="td-action-label">Set Working Hours</span>
@@ -171,6 +186,11 @@ export default function TechnicianDashboard() {
             <button className="td-action-btn" onClick={() => navigate('/availability')}>
               <span className="td-action-icon">🚫</span>
               <span className="td-action-label">Block a Date</span>
+              <span className="td-action-arrow">→</span>
+            </button>
+            <button className="td-action-btn" onClick={() => navigate('/service-area')}>
+              <span className="td-action-icon">📍</span>
+              <span className="td-action-label">Set Service Area</span>
               <span className="td-action-arrow">→</span>
             </button>
             <button className="td-action-btn" onClick={() => navigate('/profile')}>
