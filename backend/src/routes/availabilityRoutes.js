@@ -20,6 +20,5 @@ router.post('/:technicianId/unavailable', verifyToken, requireRole('technician')
 router.delete('/:technicianId/unavailable/:date', verifyToken, requireRole('technician'), unblockDate);
 
 router.get('/:technicianId/slots', fetchSlots);
-router.get('/technicians', fetchTechnicians);
-router.get('/:technicianId/slots', fetchSlots);   
+router.get('/technicians', fetchTechnicians);  
 export default router;
