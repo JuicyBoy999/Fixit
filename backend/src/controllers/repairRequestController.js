@@ -3,7 +3,7 @@ import pool from '../config/db.js';
 export const listRepairRequests = async (req, res) => {
   try {
     const { rows } = await pool.query(
-    `SELECT * FROM repair_requests ORDER BY created_at DESC`
+      `SELECT * FROM repair_requests WHERE technician_id IS NULL ORDER BY created_at DESC`
 );
     res.json({ requests: rows });
   } catch (err) {
@@ -56,8 +56,8 @@ export const updateRepairRequestStatus = async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `UPDATE repair_requests SET status = $1 WHERE id = $2 RETURNING *`,
-      [status, id]
+     `UPDATE repair_requests SET status = $1, technician_id = $2 WHERE id = $3 RETURNING *`
+[status, req.user.id, id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Request not found' });
     res.json({ success: true, ...rows[0] });
