@@ -2,12 +2,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './TechnicianDashboard.css';
 
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
 export default function TechnicianDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [stats, setStats] = useState({ totalSlots: 0, activeDays: 0, blockedDates: 0, pendingRequests: 0 });
+  const [stats, setStats] = useState({ activeDays: 0, blockedDates: 0, pendingRequests: 0, totalRequests: 0 });
+  const [requests, setRequests] = useState([]);
   const [upcomingSlots, setUpcomingSlots] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('Month');
+  const [calMonth, setCalMonth] = useState(new Date());
 
   const token = localStorage.getItem('token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
@@ -15,11 +21,9 @@ export default function TechnicianDashboard() {
   useEffect(() => {
     const stored = localStorage.getItem('user');
     if (!stored) { navigate('/login'); return; }
-
     const parsed = JSON.parse(stored);
     if (parsed.role !== 'technician') { navigate('/dashboard'); return; }
     setUser(parsed);
-
     const techId = parsed.id;
 
     Promise.all([
@@ -30,28 +34,27 @@ export default function TechnicianDashboard() {
       .then(([hoursData, unavailData, requestsData]) => {
         const hours = hoursData.hours || [];
         const blocked = unavailData.dates || [];
-        const requests = requestsData.requests || [];
+        const reqs = requestsData.requests || [];
         const activeDays = hours.filter(h => h.is_active).length;
-        const pendingRequests = requests.filter(r => r.status === 'pending').length;
+        const pendingRequests = reqs.filter(r => r.status === 'pending').length;
 
         const slots = [];
         for (let i = 0; i < 7; i++) {
           const d = new Date();
           d.setDate(d.getDate() + i);
           const dateStr = d.toISOString().split('T')[0];
-          const dayOfWeek = d.getDay();
-          const dayHours = hours.find(h => h.day_of_week === dayOfWeek && h.is_active);
+          const dayHours = hours.find(h => h.day_of_week === d.getDay() && h.is_active);
           const isBlocked = blocked.some(b => b.unavailable_date === dateStr);
-
           slots.push({
             date: dateStr,
-            label: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+            day: DAYS_SHORT[d.getDay()],
+            num: d.getDate(),
             status: isBlocked ? 'blocked' : dayHours ? 'available' : 'off',
-            hours: dayHours ? `${dayHours.start_time.slice(0,5)} – ${dayHours.end_time.slice(0,5)}` : null,
           });
         }
 
-        setStats({ activeDays, blockedDates: blocked.length, totalSlots: activeDays * 8, pendingRequests });
+        setStats({ activeDays, blockedDates: blocked.length, pendingRequests, totalRequests: reqs.length });
+        setRequests(reqs.slice(0, 6));
         setUpcomingSlots(slots);
       })
       .catch(() => {})
@@ -63,6 +66,42 @@ export default function TechnicianDashboard() {
     localStorage.removeItem('user');
     navigate('/login');
   };
+
+  const prevMonth = () => setCalMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1));
+  const nextMonth = () => setCalMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1));
+
+  const calDays = () => {
+    const year = calMonth.getFullYear();
+    const month = calMonth.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < firstDay; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+    return cells;
+  };
+
+  const today = new Date().getDate();
+  const isCurrentMonth =
+    calMonth.getFullYear() === new Date().getFullYear() &&
+    calMonth.getMonth() === new Date().getMonth();
+
+  const acceptedCount = requests.filter(r => r.status === 'accepted').length;
+  const totalCount = requests.length || 1;
+  const acceptRate = Math.round((acceptedCount / totalCount) * 100);
+
+  const barData = [
+    { label: 'Mon', val: 3 },
+    { label: 'Tue', val: 5 },
+    { label: 'Wed', val: 2 },
+    { label: 'Thu', val: 7 },
+    { label: 'Fri', val: 4 },
+    { label: 'Sat', val: 6 },
+    { label: 'Sun', val: 1 },
+  ];
+  const maxBar = Math.max(...barData.map(b => b.val));
+
+  const fmt = d => d ? new Date(d).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
   if (loading) return <div className="td-loading">Loading dashboard…</div>;
 
@@ -76,130 +115,174 @@ export default function TechnicianDashboard() {
         </div>
 
         <nav className="td-nav">
-          <button className="td-nav-item td-nav-item--active">
-            <span className="td-nav-icon">⊞</span>
-            Dashboard
-          </button>
+          <button className="td-nav-item td-nav-item--active">Dashboard</button>
           <button className="td-nav-item" onClick={() => navigate('/repair-requests')}>
-            <span className="td-nav-icon">🔧</span>
             Repair Requests
-            {stats.pendingRequests > 0 && (
-              <span className="td-nav-badge">{stats.pendingRequests}</span>
-            )}
+            {stats.pendingRequests > 0 && <span className="td-nav-badge">{stats.pendingRequests}</span>}
           </button>
-          <button className="td-nav-item" onClick={() => navigate('/availability')}>
-            <span className="td-nav-icon">📅</span>
-            Availability
-          </button>
-          <button className="td-nav-item" onClick={() => navigate('/service-area')}>
-            <span className="td-nav-icon">📍</span>
-            Service Area
-          </button>
-          <button className="td-nav-item" onClick={() => navigate('/profile')}>
-            <span className="td-nav-icon">👤</span>
-            Profile
-          </button>
+          <button className="td-nav-item" onClick={() => navigate('/availability')}>Availability</button>
+          <button className="td-nav-item" onClick={() => navigate('/service-area')}>Service Area</button>
+          <button className="td-nav-item" onClick={() => navigate('/profile')}>Profile</button>
         </nav>
 
-        <button className="td-logout" onClick={handleLogout}>
-          <span>⎋</span> Sign Out
-        </button>
+        <div className="td-sidebar-bottom">
+          <button className="td-nav-item">Settings</button>
+          <button className="td-nav-item">Help Center</button>
+          <button className="td-nav-item td-logout-item" onClick={handleLogout}>Log out</button>
+        </div>
       </aside>
 
       <main className="td-main">
 
-        <header className="td-header">
-          <div>
-            <h1 className="td-heading">Welcome back, {user?.firstName || 'Technician'}</h1>
-            <p className="td-subheading">Here's your overview</p>
+        <div className="td-topbar">
+          <h1 className="td-page-title">Dashboard</h1>
+          <div className="td-topbar-right">
+            <div className="td-search">
+              <span className="td-search-icon">🔍</span>
+              <input className="td-search-input" placeholder="Search..." />
+            </div>
+            <div className="td-avatar">{(user?.firstName?.[0] || 'T').toUpperCase()}</div>
           </div>
-          <div className="td-avatar">
-            {(user?.firstName?.[0] || 'T').toUpperCase()}
-          </div>
-        </header>
+        </div>
+
+        <div className="td-filter-bar">
+          {['Day','Week','Month','Year'].map(f => (
+            <button
+              key={f}
+              className={`td-filter-btn${filter === f ? ' td-filter-btn--active' : ''}`}
+              onClick={() => setFilter(f)}
+            >{f}</button>
+          ))}
+          <span className="td-date-range">
+            📅 {new Date().toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' })}
+          </span>
+        </div>
 
         <div className="td-stats">
-          <div className="td-stat-card">
-            <div className="td-stat-icon td-stat-icon--blue">📅</div>
-            <div>
-              <div className="td-stat-value">{stats.activeDays}</div>
-              <div className="td-stat-label">Active Days / Week</div>
-            </div>
+          <div className="td-stat-card td-stat-card--dark">
+            <div className="td-stat-label">Total Requests</div>
+            <div className="td-stat-value">{stats.totalRequests}</div>
+            <div className="td-stat-change td-stat-change--up">all time</div>
           </div>
           <div className="td-stat-card">
-            <div className="td-stat-icon td-stat-icon--cyan">🕐</div>
-            <div>
-              <div className="td-stat-value">{stats.totalSlots}</div>
-              <div className="td-stat-label">Weekly Slots</div>
-            </div>
+            <div className="td-stat-label">Active Days</div>
+            <div className="td-stat-value">{stats.activeDays}</div>
+            <div className="td-stat-change td-stat-change--up">per week</div>
           </div>
           <div className="td-stat-card">
-            <div className="td-stat-icon td-stat-icon--red">🚫</div>
-            <div>
-              <div className="td-stat-value">{stats.blockedDates}</div>
-              <div className="td-stat-label">Blocked Dates</div>
-            </div>
+            <div className="td-stat-label">Pending</div>
+            <div className="td-stat-value">{stats.pendingRequests}</div>
+            <div className="td-stat-change td-stat-change--down">needs action</div>
           </div>
           <div className="td-stat-card">
-            <div className="td-stat-icon td-stat-icon--orange">🔧</div>
-            <div>
-              <div className="td-stat-value">{stats.pendingRequests}</div>
-              <div className="td-stat-label">Pending Requests</div>
+            <div className="td-stat-label">Blocked Dates</div>
+            <div className="td-stat-value">{stats.blockedDates}</div>
+            <div className="td-stat-change">scheduled off</div>
+          </div>
+        </div>
+
+        <div className="td-middle">
+
+          <div className="td-card td-chart-card">
+            <div className="td-card-header">
+              <span className="td-card-title">Requests Overview</span>
+              <button className="td-btn-outline" onClick={() => navigate('/repair-requests')}>View all →</button>
+            </div>
+            <div className="td-chart">
+              <div className="td-chart-bars">
+                {barData.map(b => (
+                  <div key={b.label} className="td-bar-col">
+                    <div className="td-bar-wrap">
+                      <div
+                        className="td-bar"
+                        style={{ height: `${(b.val / maxBar) * 100}%` }}
+                      />
+                    </div>
+                    <span className="td-bar-label">{b.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="td-right-col">
+            <div className="td-card td-cal-card">
+              <div className="td-cal-header">
+                <button className="td-cal-nav" onClick={prevMonth}>‹</button>
+                <span className="td-cal-title">
+                  {MONTHS[calMonth.getMonth()]} {calMonth.getFullYear()}
+                </span>
+                <button className="td-cal-nav" onClick={nextMonth}>›</button>
+              </div>
+              <div className="td-cal-grid">
+                {DAYS_SHORT.map(d => <div key={d} className="td-cal-dayname">{d}</div>)}
+                {calDays().map((d, i) => (
+                  <div
+                    key={i}
+                    className={`td-cal-day${d === null ? ' td-cal-day--empty' : ''}${isCurrentMonth && d === today ? ' td-cal-day--today' : ''}`}
+                  >
+                    {d}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="td-card td-growth-card">
+              <div>
+                <div className="td-card-title">Acceptance Rate</div>
+                <div className="td-growth-change td-stat-change--up">from accepted requests</div>
+              </div>
+              <div className="td-donut-wrap">
+                <svg viewBox="0 0 36 36" className="td-donut">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1e293b" strokeWidth="3.5" />
+                  <circle
+                    cx="18" cy="18" r="15.9" fill="none"
+                    stroke="#38bdf8" strokeWidth="3.5"
+                    strokeDasharray={`${acceptRate} ${100 - acceptRate}`}
+                    strokeDashoffset="25"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span className="td-donut-label">{acceptRate}%</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <section className="td-card">
+        <div className="td-card">
           <div className="td-card-header">
-            <h2 className="td-card-title">Next 7 Days</h2>
-            <button className="td-btn-outline" onClick={() => navigate('/availability')}>
-              Manage Availability →
-            </button>
+            <span className="td-card-title">Recent Repair Requests</span>
+            <button className="td-btn-outline" onClick={() => navigate('/repair-requests')}>View all →</button>
           </div>
-
-          <div className="td-week">
-            {upcomingSlots.map(slot => (
-              <div key={slot.date} className={`td-day-card td-day-card--${slot.status}`}>
-                <div className="td-day-label">{slot.label}</div>
-                <div className={`td-day-badge td-day-badge--${slot.status}`}>
-                  {slot.status === 'available' ? 'Available' : slot.status === 'blocked' ? 'Blocked' : 'Day Off'}
-                </div>
-                {slot.hours && <div className="td-day-hours">{slot.hours}</div>}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="td-card">
-          <h2 className="td-card-title">Quick Actions</h2>
-          <div className="td-actions">
-            <button className="td-action-btn" onClick={() => navigate('/repair-requests')}>
-              <span className="td-action-icon">🔧</span>
-              <span className="td-action-label">View Repair Requests</span>
-              <span className="td-action-arrow">→</span>
-            </button>
-            <button className="td-action-btn" onClick={() => navigate('/availability')}>
-              <span className="td-action-icon">🕐</span>
-              <span className="td-action-label">Set Working Hours</span>
-              <span className="td-action-arrow">→</span>
-            </button>
-            <button className="td-action-btn" onClick={() => navigate('/availability')}>
-              <span className="td-action-icon">🚫</span>
-              <span className="td-action-label">Block a Date</span>
-              <span className="td-action-arrow">→</span>
-            </button>
-            <button className="td-action-btn" onClick={() => navigate('/service-area')}>
-              <span className="td-action-icon">📍</span>
-              <span className="td-action-label">Set Service Area</span>
-              <span className="td-action-arrow">→</span>
-            </button>
-            <button className="td-action-btn" onClick={() => navigate('/profile')}>
-              <span className="td-action-icon">👤</span>
-              <span className="td-action-label">Edit Profile</span>
-              <span className="td-action-arrow">→</span>
-            </button>
-          </div>
-        </section>
+          <table className="td-table">
+            <thead>
+              <tr>
+                <th>Device</th>
+                <th>Description</th>
+                <th>Area</th>
+                <th>Preferred Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {requests.length === 0 ? (
+                <tr><td colSpan={5} className="td-table-empty">No repair requests yet</td></tr>
+              ) : requests.map(r => (
+                <tr key={r.id}>
+                  <td>{r.device_type || '—'}</td>
+                  <td className="td-table-desc">{r.fault_description?.slice(0, 40) || '—'}{r.fault_description?.length > 40 ? '…' : ''}</td>
+                  <td>{r.customer_area || '—'}</td>
+                  <td>{fmt(r.preferred_date)}</td>
+                  <td>
+                    <span className={`td-badge td-badge--${r.status}`}>
+                      {r.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
       </main>
     </div>
