@@ -14,6 +14,7 @@ import CancelBooking from './pages/CancelBooking'
 import RescheduleBooking from './pages/RescheduleBooking'
 import Notifications from './pages/Notifications'
 import AppointmentReminder from './pages/AppointmentReminder'
+import BookingConfirmationStatus from './pages/BookingConfirmationStatus'
 
 function App() {
   return (
@@ -35,10 +36,11 @@ function App() {
           <Route path="/reschedule-booking" element={<RescheduleBooking />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/appointment-reminder" element={<AppointmentReminder />} />
+          <Route path="/booking-status" element={<BookingConfirmationStatus />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
-  );
+  );   
 }
 
 export default App;
