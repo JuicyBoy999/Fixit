@@ -62,6 +62,7 @@ export default function BookRepair() {
           device_type:       deviceType,
           fault_description: issue,
           preferred_date:    date,
+          preferred_time:    selectedSlot,
           customer_area:     city,
           photo_url:         null,
         }),

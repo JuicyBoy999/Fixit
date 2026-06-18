@@ -1,37 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './AppointmentReminder.css'
 
-const APPOINTMENTS = [
-  {
-    id: 1,
-    device: 'Laptop',
-    issue: 'Screen is cracked',
-    customer: 'Tshering lama',
-    date: 'Jun 3, 2026',
-    time: '10:00 AM',
-    city: 'Thamel, Kathmandu',
-    status: 'tomorrow',
-    reminders: [
-      { type: '24h', label: '24-hour reminder', sent: true, sentAt: 'Jun 2 · 10:00 AM' },
-      { type: '1h', label: '1-hour reminder', sent: false, sentAt: 'Jun 3 · 9:00 AM' },
-    ],
-  },
-  {
-    id: 2,
-    device: 'Smartphone',
-    issue: 'Battery drains fast',
-    customer: 'Sheerya Sharma',
-    date: 'Jun 5, 2026',
-    time: '2:00 PM',
-    city: 'Lazimpat, Kathmandu',
-    status: 'upcoming',
-    reminders: [
-      { type: '24h', label: '24-hour reminder', sent: false, sentAt: 'Jun 4 · 2:00 PM' },
-      { type: '1h', label: '1-hour reminder', sent: false, sentAt: 'Jun 5 · 1:00 PM' },
-    ],
-  },
-]
+const API = 'http://localhost:5000/api/repair-requests'
 
 const CHECKLIST = [
   'Bring all necessary tools',
@@ -40,10 +11,53 @@ const CHECKLIST = [
   'Check customer address on map',
 ]
 
+function isTomorrow(dateStr) {
+  if (!dateStr) return false
+  const d = new Date(dateStr)
+  const t = new Date()
+  t.setDate(t.getDate() + 1)
+  return d.toDateString() === t.toDateString()
+}
+
+function mapAppointment(r, customerName) {
+  const dateStr = (r.preferred_date || '').split('T')[0]
+  const tomorrow = isTomorrow(r.preferred_date)
+  return {
+    id: r.id,
+    device: r.device_type,
+    issue: r.fault_description,
+    customer: customerName,
+    date: dateStr,
+    time: r.preferred_time || '—',
+    city: r.customer_area,
+    status: tomorrow ? 'tomorrow' : 'upcoming',
+    reminders: [
+      { type: '24h', label: '24-hour reminder', sent: tomorrow, sentAt: `${dateStr} (24h before)` },
+      { type: '1h', label: '1-hour reminder', sent: false, sentAt: `${dateStr} (1h before)` },
+    ],
+  }
+}
+
 export default function AppointmentReminder() {
   const navigate = useNavigate()
-  const [selected, setSelected] = useState(APPOINTMENTS[0])
+  const [appointments, setAppointments] = useState([])
+  const [selected, setSelected] = useState(null)
   const [tab, setTab] = useState('details')
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+  useEffect(() => {
+    if (!user.id) return
+    const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'You'
+    fetch(`${API}/reminders/${user.id}`)
+      .then(r => r.json())
+      .then(data => {
+        const list = (data.reminders || []).map(r => mapAppointment(r, name))
+        setAppointments(list)
+        if (list.length) setSelected(list[0])
+      })
+      .catch(() => {})
+  }, [user.id])
 
   return (
     <div className="ar-page">
@@ -57,15 +71,20 @@ export default function AppointmentReminder() {
               <div className="ar-subtitle">Upcoming repair appointments</div>
             </div>
           </div>
-          <span className="ar-count-badge">{APPOINTMENTS.length} upcoming</span>
+          <span className="ar-count-badge">{appointments.length} upcoming</span>
         </div>
 
         <div className="ar-body">
+          {appointments.length === 0 && (
+            <p className="ar-instruction" style={{ opacity: 0.6, padding: '12px 0' }}>
+              No upcoming appointments.
+            </p>
+          )}
           <div className="ar-appt-list">
-            {APPOINTMENTS.map(a => (
+            {appointments.map(a => (
               <div
                 key={a.id}
-                className={`ar-appt-item ${selected.id === a.id ? 'selected' : ''}`}
+                className={`ar-appt-item ${selected?.id === a.id ? 'selected' : ''}`}
                 onClick={() => { setSelected(a); setTab('details') }}
               >
                 <div className={`ar-appt-status ${a.status}`} />
@@ -86,7 +105,7 @@ export default function AppointmentReminder() {
             <button className={`ar-tab ${tab === 'checklist' ? 'on' : ''}`} onClick={() => setTab('checklist')}>Checklist</button>
           </div>
 
-          {tab === 'details' && (
+          {selected && tab === 'details' && (
             <div className="ar-details">
               <div className="ar-detail-card">
                 <div className="ar-detail-row">
@@ -117,7 +136,7 @@ export default function AppointmentReminder() {
             </div>
           )}
 
-          {tab === 'reminders' && (
+          {selected && tab === 'reminders' && (
             <div className="ar-reminders">
               {selected.reminders.map(r => (
                 <div key={r.type} className="ar-reminder-item">

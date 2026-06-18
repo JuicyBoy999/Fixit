@@ -1,27 +1,49 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import './BrowseTechnicians.css'
 import TechnicianCalendar from './TechnicianCalendar'
 
-const technicianData = [
-  { id: 1, name: 'Ram Kumar', loc: 'Thamel', dist: 1.2, skills: ['Laptop', 'Mobile', 'Desktop'], rating: 4.8, reviews: 124, price: 500, avail: 'now', initials: 'RK', color: 'blue' },
-  { id: 2, name: 'Sita Maharjan', loc: 'Lazimpat', dist: 2.1, skills: ['TV', 'Appliance'], rating: 4.7, reviews: 89, price: 600, avail: 'now', initials: 'SM', color: 'purple' },
-  { id: 3, name: 'Bikash Pradhan', loc: 'Baneshwor', dist: 3.4, skills: ['Desktop', 'Gaming', 'Laptop'], rating: 4.9, reviews: 201, price: 700, avail: 'today', initials: 'BP', color: 'green' },
-  { id: 4, name: 'Anita Shrestha', loc: 'Kupondol', dist: 4.8, skills: ['Mobile', 'Tablet'], rating: 4.6, reviews: 67, price: 450, avail: 'now', initials: 'AS', color: 'amber' },
-  { id: 5, name: 'Prakash Lama', loc: 'Koteshwor', dist: 5.9, skills: ['Laptop', 'TV', 'Desktop', 'Mobile'], rating: 4.5, reviews: 155, price: 550, avail: 'busy', initials: 'PL', color: 'red' },
-  { id: 6, name: 'Deepak Rai', loc: 'Maharajgunj', dist: 6.2, skills: ['Appliance', 'TV'], rating: 4.3, reviews: 43, price: 400, avail: 'today', initials: 'DR', color: 'cyan' },
-  { id: 7, name: 'Sunita Gurung', loc: 'Pulchowk', dist: 7.5, skills: ['Mobile', 'Laptop'], rating: 4.7, reviews: 92, price: 480, avail: 'now', initials: 'SG', color: 'pink' },
-  { id: 8, name: 'Nabin Tamang', loc: 'Gongabu', dist: 9.1, skills: ['Desktop', 'Gaming'], rating: 4.4, reviews: 38, price: 620, avail: 'busy', initials: 'NT', color: 'orange' },
-  { id: 9, name: 'Kopila Thapa', loc: 'Chabahil', dist: 11.3, skills: ['TV', 'Appliance', 'Mobile'], rating: 4.6, reviews: 71, price: 520, avail: 'today', initials: 'KT', color: 'indigo' },
-  { id: 10, name: 'Roshan Basnet', loc: 'Balaju', dist: 13.7, skills: ['Laptop', 'Desktop'], rating: 4.2, reviews: 29, price: 390, avail: 'now', initials: 'RB', color: 'teal' },
-]
+const API = 'http://localhost:5000/api/availability/technicians'
+
+// The backend stores only a technician's name + city. Skills/rating/price/
+// availability aren't modelled yet, so we fill those display fields with
+// reasonable defaults until a technician-profile API exists.
+const COLORS = ['blue', 'purple', 'green', 'amber', 'red', 'cyan', 'pink', 'orange', 'indigo', 'teal']
+const DEFAULT_SKILLS = ['Laptop', 'Mobile', 'Desktop']
+const AVAIL_CYCLE = ['now', 'today', 'busy']
+
+function mapTechnician(t, i) {
+  const name = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'Technician'
+  const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  return {
+    id: t.id,
+    name,
+    loc: t.city || 'Unknown',
+    dist: +(1 + i * 1.3).toFixed(1),
+    skills: DEFAULT_SKILLS,
+    rating: 4.5,
+    reviews: 0,
+    price: 500,
+    avail: AVAIL_CYCLE[i % AVAIL_CYCLE.length],
+    initials,
+    color: COLORS[i % COLORS.length],
+  }
+}
 
 export default function BrowseTechnicians() {
   const [search, setSearch] = useState('')
   const [device, setDevice] = useState('all')
   const [avail, setAvail] = useState('all')
-  const [radius, setRadius] = useState(10)
+  const [radius, setRadius] = useState(20)
   const [sort, setSort] = useState('dist')
   const [selected, setSelected] = useState(null)
+  const [technicianData, setTechnicianData] = useState([])
+
+  useEffect(() => {
+    fetch(API)
+      .then(r => r.json())
+      .then(data => setTechnicianData((data.technicians || []).map(mapTechnician)))
+      .catch(() => {})
+  }, [])
 
   const filtered = useMemo(() => {
     let list = technicianData.filter(t => {
@@ -35,7 +57,7 @@ export default function BrowseTechnicians() {
     else if (sort === 'price') list.sort((a, b) => a.price - b.price)
     else list.sort((a, b) => a.dist - b.dist)
     return list
-  }, [search, device, avail, radius, sort])
+  }, [search, device, avail, radius, sort, technicianData])
 
   function availLabel(a) {
     if (a === 'now') return <span className="bt-avail bt-avail-now">Available now</span>

@@ -1,12 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './CancelBooking.css'
 
-const MOCK_BOOKINGS = [
-  { id: 1, device: 'Laptop', issue: 'Screen is cracked', date: '2026-06-03', time: '10:00 AM', tech: 'Ram Kumar', city: 'Kathmandu', status: 'Pending' },
-  { id: 2, device: 'Smartphone', issue: 'Battery drains fast', date: '2026-06-05', time: '2:00 PM', tech: 'Sita Maharjan', city: 'Kathmandu', status: 'Confirmed' },
-  { id: 3, device: 'TV', issue: 'Screen flickering', date: '2026-06-08', time: '11:00 AM', tech: 'Bikash Pradhan', city: 'Lalitpur', status: 'Confirmed' },
-]
+const API = 'http://localhost:5000/api/repair-requests'
+
+function mapBooking(r) {
+  return {
+    id: r.id,
+    device: r.device_type,
+    issue: r.fault_description,
+    date: (r.preferred_date || '').split('T')[0],
+    time: r.preferred_time || '—',
+    tech: r.technician_id ? `Technician #${r.technician_id}` : 'Not assigned',
+    city: r.customer_area,
+    status: r.status ? r.status.charAt(0).toUpperCase() + r.status.slice(1) : 'Pending',
+  }
+}
 
 const CANCEL_REASONS = [
   'I no longer need the repair',
@@ -24,6 +33,22 @@ export default function CancelBooking() {
   const [reason, setReason] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [bookings, setBookings] = useState([])
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+  useEffect(() => {
+    if (!user.id) return
+    fetch(`${API}/my/${user.id}`)
+      .then(r => r.json())
+      .then(data => {
+        const list = (data.requests || [])
+          .filter(r => r.status !== 'cancelled')
+          .map(mapBooking)
+        setBookings(list)
+      })
+      .catch(() => {})
+  }, [user.id])
 
   function handleSelect(booking) {
     setSelected(booking)
@@ -44,7 +69,13 @@ export default function CancelBooking() {
     setError('')
     setLoading(true)
     try {
-      await new Promise(r => setTimeout(r, 800))
+      const res = await fetch(`${API}/${selected.id}/cancel`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      })
+      if (!res.ok) throw new Error('failed')
+      setBookings(bookings.filter(b => b.id !== selected.id))
       setStep('success')
     } catch {
       setError('Something went wrong. Please try again.')
@@ -75,8 +106,11 @@ export default function CancelBooking() {
           {step === 'select' && (
             <>
               <p className="cb-instruction">Select a booking to cancel:</p>
+              {bookings.length === 0 && (
+                <p className="cb-instruction" style={{ opacity: 0.6 }}>No active bookings to cancel.</p>
+              )}
               <div className="cb-list">
-                {MOCK_BOOKINGS.map(b => (
+                {bookings.map(b => (
                   <div key={b.id} className="cb-item" onClick={() => handleSelect(b)}>
                     <div className="cb-item-left">
                       <div className="cb-device-icon">

@@ -1,23 +1,17 @@
 import { useState } from 'react'
 import './TechnicianCalendar.css'
 
-const bookedDates = [3, 7, 10, 14, 17, 21, 24]
-const bookedSlots = {
-  26: ['9:00 AM', '2:00 PM'],
-  27: ['11:00 AM'],
-  28: ['9:00 AM', '10:00 AM', '3:00 PM'],
-  30: ['1:00 PM', '4:00 PM'],
-}
-const allSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM']
+const API = 'http://localhost:5000/api/availability'
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 export default function TechnicianCalendar({ tech, onBook }) {
-  const [month, setMonth] = useState(4)
-  const [year, setYear] = useState(2026)
+  const today = new Date()
+  const [month, setMonth] = useState(today.getMonth())
+  const [year, setYear] = useState(today.getFullYear())
   const [selectedDay, setSelectedDay] = useState(null)
   const [selectedTime, setSelectedTime] = useState(null)
-
-  const today = new Date()
+  const [slots, setSlots] = useState([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
 
   function changeMonth(dir) {
     let m = month + dir
@@ -28,11 +22,21 @@ export default function TechnicianCalendar({ tech, onBook }) {
     setYear(y)
     setSelectedDay(null)
     setSelectedTime(null)
+    setSlots([])
   }
 
   function selectDay(d) {
     setSelectedDay(d)
     setSelectedTime(null)
+    setSlots([])
+    if (!tech?.id) return
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    setLoadingSlots(true)
+    fetch(`${API}/${tech.id}/slots?date=${dateStr}`)
+      .then(r => r.json())
+      .then(data => setSlots(data.slots || []))
+      .catch(() => setSlots([]))
+      .finally(() => setLoadingSlots(false))
   }
 
   function handleBook() {
@@ -75,13 +79,12 @@ export default function TechnicianCalendar({ tech, onBook }) {
         {days.map((d, i) => {
           if (!d) return <div key={`e-${i}`} className="tc-cell tc-empty" />
           const isPast = new Date(year, month, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate())
-          const isBooked = bookedDates.includes(d)
           const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear()
           const isSelected = selectedDay === d
 
           let cls = 'tc-cell'
           if (isSelected) cls += ' tc-selected'
-          else if (isBooked || isPast) cls += ' tc-booked'
+          else if (isPast) cls += ' tc-booked'
           else cls += ' tc-available'
           if (isToday) cls += ' tc-today'
 
@@ -89,10 +92,10 @@ export default function TechnicianCalendar({ tech, onBook }) {
             <div
               key={d}
               className={cls}
-              onClick={() => !isBooked && !isPast && selectDay(d)}
+              onClick={() => !isPast && selectDay(d)}
             >
               <span className="tc-day-num">{d}</span>
-              {!isPast && !isBooked && <span className="tc-open-dot" />}
+              {!isPast && <span className="tc-open-dot" />}
             </div>
           )
         })}
@@ -101,17 +104,21 @@ export default function TechnicianCalendar({ tech, onBook }) {
       {selectedDay && (
         <div className="tc-slots">
           <div className="tc-slots-title">Available slots — {months[month]} {selectedDay}</div>
+          {loadingSlots && <div className="tc-confirm-info">Loading slots…</div>}
+          {!loadingSlots && slots.length === 0 && (
+            <div className="tc-confirm-info">No slots available on this day.</div>
+          )}
           <div className="tc-slots-grid">
-            {allSlots.map(slot => {
-              const taken = (bookedSlots[selectedDay] || []).includes(slot)
+            {slots.map(s => {
+              const taken = !s.available
               return (
                 <button
-                  key={slot}
-                  className={`tc-slot${taken ? ' tc-slot-taken' : ''}${selectedTime === slot ? ' tc-slot-picked' : ''}`}
+                  key={s.time}
+                  className={`tc-slot${taken ? ' tc-slot-taken' : ''}${selectedTime === s.time ? ' tc-slot-picked' : ''}`}
                   disabled={taken}
-                  onClick={() => !taken && setSelectedTime(slot)}
+                  onClick={() => !taken && setSelectedTime(s.time)}
                 >
-                  {slot}
+                  {s.time}
                 </button>
               )
             })}

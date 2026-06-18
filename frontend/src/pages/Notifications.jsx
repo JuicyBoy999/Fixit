@@ -1,70 +1,72 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Notifications.css'
 
-const NOTIFICATIONS = [
-  {
-    id: 1,
-    type: 'confirmed',
-    title: 'Booking confirmed by technician',
-    message: 'Ram Kumar has accepted your laptop repair booking. Your appointment is confirmed for Jun 3, 2026 at 10:00 AM.',
-    time: 'Just now',
-    read: false,
-    device: 'Laptop',
-    tech: 'Ram Kumar',
-    date: 'Jun 3, 2026',
-    slot: '10:00 AM',
-  },
-  {
-    id: 2,
-    type: 'onway',
-    title: 'Technician on the way',
-    message: 'Ram Kumar is confirmed for your appointment tomorrow. You will receive a reminder 1 hour before.',
-    time: '2 min ago',
-    read: false,
-  },
-  {
-    id: 3,
-    type: 'reminder',
-    title: 'Booking reminder',
-    message: 'Reminder: Your smartphone repair with Sita Maharjan is in 1 hour — Jun 5 at 2:00 PM.',
-    time: 'Yesterday',
-    read: true,
-  },
-  {
-    id: 4,
-    type: 'cancelled',
-    title: 'Booking cancelled',
-    message: 'Your TV repair booking with Bikash Pradhan on Jun 8 has been cancelled.',
-    time: '2 days ago',
-    read: true,
-  },
-]
+const API = 'http://localhost:5000/api/notifications'
 
 const ICON_MAP = {
   confirmed: { icon: '✓', cls: 'notif-icon-success' },
+  success: { icon: '✓', cls: 'notif-icon-success' },
   onway: { icon: '→', cls: 'notif-icon-info' },
+  info: { icon: '→', cls: 'notif-icon-info' },
   reminder: { icon: '⏰', cls: 'notif-icon-warning' },
+  warning: { icon: '⏰', cls: 'notif-icon-warning' },
   cancelled: { icon: '✕', cls: 'notif-icon-danger' },
+  danger: { icon: '✕', cls: 'notif-icon-danger' },
+}
+
+function relativeTime(ts) {
+  if (!ts) return ''
+  const diff = Date.now() - new Date(ts).getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return 'Just now'
+  if (min < 60) return `${min} min ago`
+  const hr = Math.floor(min / 60)
+  if (hr < 24) return `${hr} hr ago`
+  const days = Math.floor(hr / 24)
+  return days === 1 ? 'Yesterday' : `${days} days ago`
 }
 
 export default function Notifications() {
   const navigate = useNavigate()
-  const [notifs, setNotifs] = useState(NOTIFICATIONS)
+  const [notifs, setNotifs] = useState([])
   const [filter, setFilter] = useState('all')
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+  useEffect(() => {
+    if (!user.id) return
+    fetch(`${API}/${user.id}`)
+      .then(r => r.json())
+      .then(data => {
+        const list = (data.notifications || []).map(n => ({
+          id: n.id,
+          type: n.type,
+          title: n.title,
+          message: n.message,
+          time: relativeTime(n.created_at),
+          read: n.is_read,
+        }))
+        setNotifs(list)
+      })
+      .catch(() => {})
+  }, [user.id])
 
   const unread = notifs.filter(n => !n.read).length
 
   function markAll() {
     setNotifs(notifs.map(n => ({ ...n, read: true })))
+    if (user.id) fetch(`${API}/${user.id}/read-all`, { method: 'PATCH' }).catch(() => {})
   }
 
   function dismiss(id) {
     setNotifs(notifs.filter(n => n.id !== id))
+    fetch(`${API}/${id}`, { method: 'DELETE' }).catch(() => {})
   }
 
   function markRead(id) {
     setNotifs(notifs.map(n => n.id === id ? { ...n, read: true } : n))
+    fetch(`${API}/${id}/read`, { method: 'PATCH' }).catch(() => {})
   }
 
   const filtered = notifs.filter(n => {
