@@ -66,7 +66,7 @@ export default function ServiceArea() {
         </div>
         <div className="sa-topbar-right">
           <span className="sa-user">{user.firstName} {user.lastName}</span>
-          <button className="sa-back-btn" onClick={() => navigate('/dashboard')}>← Dashboard</button>
+          <button className="sa-back-btn" onClick={() => navigate('/technician-dashboard')}>← Dashboard</button>
         </div>
       </div>
 

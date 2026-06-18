@@ -130,7 +130,7 @@ export default function SetAvailability() {
       {toast && <div className={`sa-toast sa-toast--${toast.type}`}>{toast.msg}</div>}
 
       <div className="sa-container">
-        <button className="sa-back" onClick={() => navigate('/dashboard')}>← Dashboard</button>
+        <button className="sa-back" onClick={() => navigate('/technician-dashboard')}>← Dashboard</button>
         <h1 className="sa-title">My Availability</h1>
         <p className="sa-sub">Set your weekly hours and block specific dates off.</p>
 

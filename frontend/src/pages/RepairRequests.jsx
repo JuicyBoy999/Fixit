@@ -73,7 +73,7 @@ export default function RepairRequests() {
         </div>
         <div className="rr-topbar-right">
           <span className="rr-user">{user.firstName} {user.lastName}</span>
-          <button className="rr-back-btn" onClick={() => navigate('/dashboard')}>← Dashboard</button>
+          <button className="rr-back-btn" onClick={() => navigate('/technician-dashboard')}>← Dashboard</button>
         </div>
       </div>
 
