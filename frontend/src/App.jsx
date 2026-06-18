@@ -10,11 +10,15 @@ import { AuthProvider } from './context/AuthContext';
 import AdminLogin from './components/auth/AdminLogin';
 import RequestPasswordReset from './pages/RequestPasswordReset';
 import ResetPassword from './pages/ResetPassword';
-import CancelBooking from './pages/CancelBooking'
-import RescheduleBooking from './pages/RescheduleBooking'
-import Notifications from './pages/Notifications'
-import AppointmentReminder from './pages/AppointmentReminder'
-import BookingConfirmationStatus from './pages/BookingConfirmationStatus'
+import CancelBooking from './pages/CancelBooking';
+import RescheduleBooking from './pages/RescheduleBooking';
+import Notifications from './pages/Notifications';
+import AppointmentReminder from './pages/AppointmentReminder';
+import BookingConfirmationStatus from './pages/BookingConfirmationStatus';
+import ServiceArea from './pages/ServiceArea';
+import SetAvailability from './pages/SetAvailability';
+import TechnicianDashboard from './pages/TechnicianDashboard';
+import RepairRequests from './pages/RepairRequests';
 
 function App() {
   return (
@@ -29,6 +33,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
+
           <Route path="/book" element={<BookRepair />} />
           <Route path="/technicians" element={<BrowseTechnicians />} />
           <Route path="/calendar" element={<TechnicianCalendar />} />
@@ -37,10 +42,15 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/appointment-reminder" element={<AppointmentReminder />} />
           <Route path="/booking-status" element={<BookingConfirmationStatus />} />
+
+          <Route path="/service-area" element={<ServiceArea />} />
+          <Route path="/availability" element={<SetAvailability />} />
+          <Route path="/technician-dashboard" element={<TechnicianDashboard />} />
+          <Route path="/repair-requests" element={<RepairRequests />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
-  );   
+  );
 }
 
 export default App;
