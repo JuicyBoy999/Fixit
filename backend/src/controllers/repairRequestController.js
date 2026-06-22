@@ -1,5 +1,6 @@
 import pool from '../config/db.js';
 import { addNotification } from '../models/notificationModel.js';
+import { sendBookingConfirmation } from '../services/bookingMailer.js';
 
 export const listRepairRequests = async (req, res) => {
   try {
@@ -28,7 +29,11 @@ export const getRepairRequestById = async (req, res) => {
 
 export const createRepairRequest = async (req, res) => {
   try {
-    const { customer_id, technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area } = req.body;
+    const {
+      customer_id, technician_id, device_type, fault_description, photo_url,
+      preferred_date, preferred_time, customer_area,
+      customer_email, customer_name, address,
+    } = req.body;
 
     if (!device_type || !preferred_date || !customer_area) {
       return res.status(400).json({ error: 'device_type, preferred_date and customer_area are required' });
@@ -36,10 +41,10 @@ export const createRepairRequest = async (req, res) => {
 
     const { rows } = await pool.query(
       `INSERT INTO repair_requests
-        (customer_id, technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        (customer_id, technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area, customer_address)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING *`,
-      [customer_id, technician_id, device_type, fault_description, photo_url || null, preferred_date, preferred_time || null, customer_area]
+      [customer_id, technician_id, device_type, fault_description, photo_url || null, preferred_date, preferred_time || null, customer_area, address || null]
     );
 
     if (customer_id) {
@@ -51,7 +56,25 @@ export const createRepairRequest = async (req, res) => {
       );
     }
 
-    res.status(201).json({ success: true, request: rows[0] });
+    // Resolve technician name (if one was chosen) for the confirmation email
+    let technicianName = null;
+    if (technician_id) {
+      const t = await pool.query('SELECT first_name, last_name FROM users WHERE id = $1', [technician_id]);
+      if (t.rows.length) technicianName = `${t.rows[0].first_name} ${t.rows[0].last_name}`.trim();
+    }
+
+    // Send the booking confirmation email (non-blocking for the booking result)
+    const mail = await sendBookingConfirmation({
+      to: customer_email,
+      customerName: customer_name,
+      technicianName,
+      device: device_type,
+      date: preferred_date,
+      time: preferred_time,
+      address: address || customer_area,
+    });
+
+    res.status(201).json({ success: true, request: rows[0], emailSent: mail.sent });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

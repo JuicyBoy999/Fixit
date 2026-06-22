@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Notifications.css'
 
-const API = 'http://localhost:5000/api/notifications'
+const API = 'http://localhost:8000/api/notifications'
 
 const ICON_MAP = {
   confirmed: { icon: '✓', cls: 'notif-icon-success' },
@@ -13,6 +13,7 @@ const ICON_MAP = {
   warning: { icon: '⏰', cls: 'notif-icon-warning' },
   cancelled: { icon: '✕', cls: 'notif-icon-danger' },
   danger: { icon: '✕', cls: 'notif-icon-danger' },
+  completed: { icon: '✓', cls: 'notif-icon-success' },
 }
 
 function relativeTime(ts) {
@@ -46,6 +47,7 @@ export default function Notifications() {
           message: n.message,
           time: relativeTime(n.created_at),
           read: n.is_read,
+          invoice: n.invoice || null,
         }))
         setNotifs(list)
       })
@@ -130,6 +132,11 @@ export default function Notifications() {
                         {n.type === 'confirmed' && (
                           <button className="nf-btn nf-btn-primary" onClick={e => { e.stopPropagation(); navigate('/book') }}>
                             View booking
+                          </button>
+                        )}
+                        {n.invoice && (
+                          <button className="nf-btn nf-btn-primary" onClick={e => { e.stopPropagation(); navigate('/invoice', { state: n.invoice }) }}>
+                            View invoice
                           </button>
                         )}
                         <button className="nf-btn" onClick={e => { e.stopPropagation(); dismiss(n.id) }}>

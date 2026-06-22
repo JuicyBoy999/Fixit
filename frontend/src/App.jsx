@@ -19,6 +19,7 @@ import ServiceArea from './pages/ServiceArea';
 import SetAvailability from './pages/SetAvailability';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import RepairRequests from './pages/RepairRequests';
+import Invoice from './pages/Invoice';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
           <Route path="/availability" element={<SetAvailability />} />
           <Route path="/technician-dashboard" element={<TechnicianDashboard />} />
           <Route path="/repair-requests" element={<RepairRequests />} />
+          <Route path="/invoice" element={<Invoice />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

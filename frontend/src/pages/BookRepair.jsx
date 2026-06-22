@@ -64,6 +64,9 @@ export default function BookRepair() {
           preferred_date:    date,
           preferred_time:    selectedSlot,
           customer_area:     city,
+          customer_email:    email,
+          customer_name:     name,
+          address:           address,
           photo_url:         null,
         }),
       })

@@ -19,6 +19,7 @@ export const createRepairRequestsTable = async () => {
   await pool.query(`ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS preferred_time TEXT`);
   await pool.query(`ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS cancel_reason  TEXT`);
   await pool.query(`ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS reminder_sent  BOOLEAN DEFAULT FALSE`);
+  await pool.query(`ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS customer_address TEXT`);
 };
 
 createRepairRequestsTable();
