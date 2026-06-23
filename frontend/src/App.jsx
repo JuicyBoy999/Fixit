@@ -20,6 +20,8 @@ import SetAvailability from './pages/SetAvailability';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import RepairRequests from './pages/RepairRequests';
 import Invoice from './pages/Invoice';
+import Payment from './pages/Payment';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 function App() {
   return (
@@ -49,6 +51,8 @@ function App() {
           <Route path="/technician-dashboard" element={<TechnicianDashboard />} />
           <Route path="/repair-requests" element={<RepairRequests />} />
           <Route path="/invoice" element={<Invoice />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

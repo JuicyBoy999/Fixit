@@ -17,6 +17,7 @@ import './models/repairRequestModel.js';
 import repairRequestRoute from './routes/repairRequestRoute.js';
 import './models/notificationModel.js';
 import notificationRoute from './routes/notificationRoute.js';
+import esewaRoute from './routes/esewaRoute.js';
 
 dotenv.config();
 
@@ -75,6 +76,7 @@ app.use("/api/service-area", serviceAreaRoute);
 app.use("/api/availability", availabilityRoutes);
 
 app.use("/api/notifications", notificationRoute);
+app.use('/api/esewa', esewaRoute);
 
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
