@@ -10,6 +10,14 @@ export const getRepairById = async (id) => {
   return result.rows[0];
 };
 
+export const updateRepairStatus = async (id, status) => {
+  const result = await pool.query(
+    `UPDATE repairs SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+    [status, id]
+  );
+  return result.rows[0];
+};
+
 export const createRepair = async ({
   userId,
   deviceName,

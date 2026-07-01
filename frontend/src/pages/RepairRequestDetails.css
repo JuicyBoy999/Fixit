@@ -186,8 +186,140 @@
   margin: 0 auto 20px;
 }
 
+/* Timeline Styles */
+.rd-timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+  padding: 0 10px;
+}
+
+.rd-timeline-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.rd-step-icon {
+  width: 40px;
+  height: 40px;
+  background: #1e2d45;
+  border: 2px solid #2a3a52;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  z-index: 2;
+  transition: all 0.3s ease;
+  color: #6b7a8d;
+}
+
+.rd-step-label {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7a8d;
+  text-align: center;
+}
+
+.rd-step-line {
+  position: absolute;
+  top: 20px;
+  left: calc(50% + 20px);
+  right: calc(-50% + 20px);
+  height: 2px;
+  background: #2a3a52;
+  z-index: 1;
+}
+
+.rd-timeline-step.completed .rd-step-icon {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  color: #0d1117;
+}
+
+.rd-timeline-step.completed .rd-step-label {
+  color: #fff;
+}
+
+.rd-timeline-step.completed .rd-step-line {
+  background: #38bdf8;
+}
+
+.rd-timeline-step.active .rd-step-icon {
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.rd-timeline-step.active .rd-step-label {
+  color: #38bdf8;
+}
+
+.rd-cancelled-notice {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rd-tech-controls {
+  background: #1e2d45;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #2a3a52;
+}
+
+.rd-tech-controls label {
+  display: block;
+  font-size: 11px;
+  color: #8b9ab0;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rd-status-select {
+  width: 100%;
+  height: 46px;
+  background: #0f1623;
+  border: 1px solid #38bdf8;
+  border-radius: 8px;
+  color: #fff;
+  padding: 0 12px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
+
 @media (max-width: 480px) {
-  .rd-info-grid {
-    grid-template-columns: 1fr;
+  .rd-timeline {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+    padding-left: 20px;
+  }
+
+  .rd-timeline-step {
+    flex-direction: row;
+    gap: 15px;
+  }
+
+  .rd-step-line {
+    top: 40px;
+    left: 20px;
+    width: 2px;
+    height: 20px;
   }
 }
+

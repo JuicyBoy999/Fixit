@@ -1,5 +1,6 @@
 import * as repairModel from '../models/repairModel.js';
 import { notifyTechnicians } from '../services/notificationService.js';
+import { registerClient, broadcastStatusUpdate } from '../services/sseService.js';
 
 export const createRepairBooking = async (req, res) => {
   try {
@@ -46,6 +47,49 @@ export const createRepairBooking = async (req, res) => {
     console.error('Error creating repair booking:', error);
     res.status(500).json({ message: 'Server error' });
   }
+};
+
+export const updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const updatedRepair = await repairModel.updateRepairStatus(id, status);
+    
+    if (!updatedRepair) {
+      return res.status(404).json({ message: 'Repair not found' });
+    }
+
+    // Broadcast update via SSE
+    broadcastStatusUpdate(id, status);
+
+    res.json({ message: 'Status updated successfully', repair: updatedRepair });
+  } catch (error) {
+    console.error('Error updating status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const subscribeToUpdates = async (req, res) => {
+  const { id } = req.params;
+
+  // Set SSE headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*'
+  });
+
+  registerClient(id, res);
+
+  // Send initial keep-alive
+  res.write('data: {"connected": true}\n\n');
 };
 
 export const getRepairDetails = async (req, res) => {

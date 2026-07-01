@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './RepairRequestDetails.css';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
 export default function RepairRequestDetails() {
   const { id } = useParams();
@@ -8,6 +10,28 @@ export default function RepairRequestDetails() {
   const [repair, setRepair] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const eventSource = new EventSource(`${API_URL}/api/repair/${id}/updates`);
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.status) {
+        setRepair(prev => prev ? { ...prev, status: data.status } : null);
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error('SSE Error:', err);
+      eventSource.close();
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [id]);
 
   useEffect(() => {
     async function fetchRepairDetails() {
@@ -79,14 +103,34 @@ export default function RepairRequestDetails() {
         </div>
 
         <div className="rd-body">
-          <div className="rd-status-bar">
-            <span className={`rd-status rd-status-${repair.status}`}>
-              {repair.status.replace('_', ' ').toUpperCase()}
-            </span>
-            <span className="rd-date">
-              Created on {new Date(repair.created_at).toLocaleDateString()}
-            </span>
+          <div className="rd-timeline">
+            {[
+              { id: 'pending', label: 'Requested', icon: '📝' },
+              { id: 'confirmed', label: 'Confirmed', icon: '✅' },
+              { id: 'in_progress', label: 'In Progress', icon: '🛠️' },
+              { id: 'completed', label: 'Completed', icon: '🎉' }
+            ].map((step, index, array) => {
+              const statusOrder = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
+              const currentIdx = statusOrder.indexOf(repair.status);
+              const stepIdx = statusOrder.indexOf(step.id);
+              const isCompleted = currentIdx >= stepIdx && repair.status !== 'cancelled';
+              const isActive = repair.status === step.id;
+
+              return (
+                <div key={step.id} className={`rd-timeline-step ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}`}>
+                  <div className="rd-step-icon">{isCompleted ? '✓' : step.icon}</div>
+                  <div className="rd-step-label">{step.label}</div>
+                  {index < array.length - 1 && <div className="rd-step-line" />}
+                </div>
+              );
+            })}
           </div>
+
+          {repair.status === 'cancelled' && (
+            <div className="rd-cancelled-notice">
+              This request has been cancelled.
+            </div>
+          )}
 
           <div className="rd-section">
             <h3>Device Information</h3>
@@ -125,7 +169,7 @@ export default function RepairRequestDetails() {
                 <label>Email</label>
                 <p>{repair.contact_email}</p>
               </div>
-            </div>
+            </div> 
             <div className="rd-info-item full">
               <label>Service Address</label>
               <p>{repair.address || 'No specific address provided'}</p>
@@ -133,9 +177,40 @@ export default function RepairRequestDetails() {
           </div>
 
           <div className="rd-actions">
-            <button className="rd-btn rd-btn-primary" onClick={() => alert('Feature coming soon: Accept this job')}>
-              Claim This Request
-            </button>
+            {(user?.role === 'technician' || user?.role === 'admin') && (
+              <div className="rd-tech-controls">
+              <label>Update Status (Technician View)</label>
+              <select 
+                value={repair.status} 
+                onChange={async (e) => {
+                  const newStatus = e.target.value;
+                  const token = localStorage.getItem('token');
+                  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                  try {
+                    const res = await fetch(`${API_URL}/api/repair/${id}/status`, {
+                      method: 'PATCH',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({ status: newStatus }),
+                    });
+                    if (!res.ok) throw new Error('Failed to update status');
+                    setRepair(prev => ({ ...prev, status: newStatus }));
+                  } catch (err) {
+                    alert(err.message);
+                  }
+                }}
+                className="rd-status-select"
+              >
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          )}
           </div>
         </div>
       </div>
