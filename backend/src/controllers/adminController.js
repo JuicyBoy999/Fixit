@@ -1,8 +1,18 @@
 import jwt from 'jsonwebtoken';
 import { getUserByEmail, getUserById, getManageableUsers, updateUserStatus } from '../models/userModel.js';
-import { getManageableTechnicians, getTechnicianAccountById, updateTechnicianStatus } from '../models/technicianModel.js';
+import {
+  getManageableTechnicians,
+  getPendingTechnicianVerifications,
+  getTechnicianAccountById,
+  updateTechnicianStatus,
+  updateTechnicianVerificationStatus,
+} from '../models/technicianModel.js';
 import * as messageModel from '../models/messageModel.js';
-import { sendAccountStatusEmail, sendWarningEmail } from '../services/notificationService.js';
+import {
+  sendAccountStatusEmail,
+  sendTechnicianVerificationEmail,
+  sendWarningEmail,
+} from '../services/notificationService.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 
@@ -56,6 +66,33 @@ const normalizeAccount = (account, type) => ({
   city: account.city || account.location || 'N/A',
   status: account.status || 'active',
   createdAt: account.created_at,
+});
+
+const normalizeCredentialDocuments = (documents) => {
+  if (!documents) return [];
+  if (Array.isArray(documents)) return documents;
+  if (typeof documents === 'string') {
+    try {
+      const parsed = JSON.parse(documents);
+      return Array.isArray(parsed) ? parsed : [documents];
+    } catch (_error) {
+      return [documents];
+    }
+  }
+  return [documents];
+};
+
+const normalizeTechnicianVerification = (technician) => ({
+  id: technician.id,
+  userId: technician.user_id,
+  name: technician.full_name,
+  email: technician.email || 'No linked email',
+  title: technician.title,
+  location: technician.location || 'N/A',
+  status: technician.status || 'active',
+  verificationStatus: technician.verification_status || 'pending',
+  documents: normalizeCredentialDocuments(technician.credential_documents),
+  createdAt: technician.created_at,
 });
 
 export const getAccounts = async (_req, res) => {
@@ -185,6 +222,82 @@ export const reinstateAccount = async (req, res) => {
     res.json({ message: 'Account reinstated successfully', account });
   } catch (error) {
     console.error('Error reinstating account:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getPendingTechnicians = async (_req, res) => {
+  try {
+    const technicians = await getPendingTechnicianVerifications();
+    res.json({
+      technicians: technicians.map(normalizeTechnicianVerification),
+    });
+  } catch (error) {
+    console.error('Error fetching pending technician verifications:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const approveTechnician = async (req, res) => {
+  const { technicianId } = req.params;
+
+  try {
+    const technician = await getTechnicianAccountById(technicianId);
+    if (!technician) {
+      return res.status(404).json({ message: 'Technician not found' });
+    }
+
+    const updated = await updateTechnicianVerificationStatus(technicianId, 'approved');
+
+    if (technician.email) {
+      await sendTechnicianVerificationEmail(
+        technician.email,
+        technician.first_name || technician.full_name,
+        'approved'
+      );
+    }
+
+    res.json({
+      message: 'Technician credentials approved successfully',
+      technician: normalizeTechnicianVerification({ ...technician, ...updated }),
+    });
+  } catch (error) {
+    console.error('Error approving technician credentials:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const rejectTechnician = async (req, res) => {
+  const { technicianId } = req.params;
+  const { reason } = req.body;
+
+  if (!reason || !reason.trim()) {
+    return res.status(400).json({ message: 'Rejection reason is required' });
+  }
+
+  try {
+    const technician = await getTechnicianAccountById(technicianId);
+    if (!technician) {
+      return res.status(404).json({ message: 'Technician not found' });
+    }
+
+    const updated = await updateTechnicianVerificationStatus(technicianId, 'rejected');
+
+    if (technician.email) {
+      await sendTechnicianVerificationEmail(
+        technician.email,
+        technician.first_name || technician.full_name,
+        'rejected',
+        reason.trim()
+      );
+    }
+
+    res.json({
+      message: 'Technician credentials rejected successfully',
+      technician: normalizeTechnicianVerification({ ...technician, ...updated }),
+    });
+  } catch (error) {
+    console.error('Error rejecting technician credentials:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

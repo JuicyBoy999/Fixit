@@ -227,8 +227,59 @@
   border: 1px solid rgba(148, 163, 184, 0.28);
 }
 
+.ap-status-pending {
+  background: rgba(250, 204, 21, 0.14);
+  color: #fde68a;
+  border: 1px solid rgba(250, 204, 21, 0.28);
+}
+
+.ap-status-approved {
+  background: rgba(34, 197, 94, 0.14);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.28);
+}
+
+.ap-status-rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.32);
+}
+
 .ap-capitalize {
   text-transform: capitalize;
+}
+
+.ap-muted {
+  color: #8b9ab0;
+}
+
+.ap-doc-list {
+  display: grid;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.ap-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #7dd3fc;
+  text-decoration: none;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.ap-doc-link:hover {
+  color: #bae6fd;
+}
+
+.ap-doc-preview {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #2a3a52;
+  background: #0f1623;
 }
 
 .ap-empty,

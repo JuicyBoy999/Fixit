@@ -13,6 +13,9 @@ router.get('/accounts', authMiddleware, roleCheck('admin'), activityTimeout, adm
 router.get('/accounts/suspended', authMiddleware, roleCheck('admin'), activityTimeout, adminController.getSuspendedAccounts);
 router.patch('/accounts/:accountType/:accountId/suspend', authMiddleware, roleCheck('admin'), activityTimeout, adminController.suspendAccount);
 router.patch('/accounts/:accountType/:accountId/reinstate', authMiddleware, roleCheck('admin'), activityTimeout, adminController.reinstateAccount);
+router.get('/technician-verifications/pending', authMiddleware, roleCheck('admin'), activityTimeout, adminController.getPendingTechnicians);
+router.patch('/technician-verifications/:technicianId/approve', authMiddleware, roleCheck('admin'), activityTimeout, adminController.approveTechnician);
+router.patch('/technician-verifications/:technicianId/reject', authMiddleware, roleCheck('admin'), activityTimeout, adminController.rejectTechnician);
 router.get('/flagged-messages', authMiddleware, roleCheck('admin'), activityTimeout, adminController.getFlaggedMessages);
 router.delete('/messages/:id', authMiddleware, roleCheck('admin'), activityTimeout, adminController.deleteMessage);
 router.post('/users/:userId/warn', authMiddleware, roleCheck('admin'), activityTimeout, adminController.warnUser);

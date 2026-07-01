@@ -18,6 +18,7 @@ export const getMatchingTechnicians = async (city, deviceName) => {
      JOIN users u ON tp.user_id = u.id
      WHERE tp.location = $1 
      AND tp.status = 'active'
+     AND tp.verification_status = 'approved'
      AND u.status = 'active'
      AND EXISTS (
        SELECT 1 FROM unnest(tp.skills) s 
@@ -159,6 +160,55 @@ export const sendAccountStatusEmail = async (email, firstName, status, reason) =
     console.log(`Dispatched ${status} email to ${email}`);
   } catch (error) {
     console.error('Error sending account status email:', error);
+  }
+};
+
+/**
+ * Send technician credential verification outcome emails.
+ */
+export const sendTechnicianVerificationEmail = async (email, firstName, outcome, reason = '') => {
+  const approved = outcome === 'approved';
+
+  try {
+    await transporter.sendMail({
+      from: `"FixIt Admin" <${process.env.EMAIL_FROM}>`,
+      to: email,
+      subject: `Technician Credentials ${approved ? 'Approved' : 'Rejected'}`,
+      html: `
+        <div style="background-color: #0d1117; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 40px; border-radius: 16px; max-width: 600px; margin: 20px auto; border: 1px solid #1e2a3a;">
+          <div style="display: flex; align-items: center; margin-bottom: 24px;">
+            <div style="width: 38px; height: 38px; background: #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #0d1117; font-weight: bold; margin-right: 12px;">F</div>
+            <span style="font-size: 20px; font-weight: 500;">Fix<b>It</b> Admin</span>
+          </div>
+
+          <h1 style="font-size: 24px; margin-bottom: 16px; color: ${approved ? '#86efac' : '#f87171'};">
+            Credentials ${approved ? 'Approved' : 'Rejected'}
+          </h1>
+          <p style="color: #6b7a8d; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+            Hello ${firstName},
+          </p>
+          <p style="color: #d1d5db; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+            ${approved
+              ? 'Your technician credentials have been approved. Your profile can now appear to FixIt customers.'
+              : 'Your technician credential submission was rejected by a FixIt administrator.'}
+          </p>
+
+          ${approved ? '' : `
+            <div style="background: #111827; border: 1px solid #1e2d40; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+              <p style="margin: 0 0 8px; color: #8b9ab0; font-size: 12px; text-transform: uppercase; font-weight: 600;">Reason</p>
+              <p style="margin: 0; color: #fff; line-height: 1.4;">${reason}</p>
+            </div>
+          `}
+
+          <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #3d5068;">
+            This is an administrative message. Replies to this email are not monitored.
+          </p>
+        </div>
+      `
+    });
+    console.log(`Dispatched technician verification ${outcome} email to ${email}`);
+  } catch (error) {
+    console.error('Error sending technician verification email:', error);
   }
 };
 
