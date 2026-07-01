@@ -1,0 +1,268 @@
+.ap-page {
+  min-height: 100vh;
+  background: #0a0e1a;
+  color: #ffffff;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 32px 20px;
+}
+
+.ap-shell {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+}
+
+.ap-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 34px;
+}
+
+.ap-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ap-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #38bdf8;
+  color: #0f1f3d;
+  font-weight: 900;
+}
+
+.ap-heading-row {
+  margin-bottom: 24px;
+}
+
+.ap-heading-row h1 {
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.ap-heading-row p {
+  color: #94a3b8;
+  margin: 0;
+  font-size: 15px;
+}
+
+.ap-table-wrap {
+  background: #111827;
+  border: 1px solid #1e2d45;
+  border-radius: 16px;
+  box-shadow: 0 22px 55px rgba(4, 12, 28, 0.28);
+  overflow-x: auto;
+  margin-bottom: 30px;
+}
+
+.ap-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.ap-table th,
+.ap-table td {
+  padding: 18px 20px;
+  text-align: left;
+  border-bottom: 1px solid #1e2d45;
+}
+
+.ap-table th {
+  color: #8b9ab0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ap-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ap-table tbody tr:hover {
+  background: #0f1623;
+}
+
+.ap-table td {
+  color: #e5eefb;
+  font-size: 14px;
+}
+
+.ap-table td .sender-info {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.ap-table td .sender-email {
+  color: #8b9ab0;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.ap-table td .msg-content {
+  font-family: inherit;
+  color: #d1d5db;
+  line-height: 1.5;
+  max-width: 320px;
+  word-break: break-word;
+}
+
+.ap-btn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ap-btn {
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 14px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ap-btn-primary {
+  background: #38bdf8;
+  color: #0f1f3d;
+}
+
+.ap-btn-primary:hover {
+  background: #7dd3fc;
+}
+
+.ap-btn-secondary {
+  background: #1e2d45;
+  color: #ffffff;
+  border: 1px solid #2a3a52;
+}
+
+.ap-btn-secondary:hover {
+  background: #2a3a52;
+}
+
+.ap-btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ap-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.ap-empty,
+.ap-state {
+  padding: 42px 24px;
+  text-align: center;
+  background: #111827;
+  border: 1px solid #1e2d45;
+  border-radius: 16px;
+  color: #94a3b8;
+}
+
+.ap-empty h2 {
+  font-size: 22px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+/* Modal styling */
+.ap-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(4, 12, 28, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.ap-modal {
+  width: 100%;
+  max-width: 480px;
+  background: #172d4f;
+  border: 1px solid #34577f;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
+  animation: ap-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ap-fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.ap-modal h2 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 12px;
+  color: #ffffff;
+}
+
+.ap-modal p {
+  color: #a7c0df;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.ap-modal label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #9fb5d1;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.ap-modal textarea {
+  width: 100%;
+  min-height: 100px;
+  background: #24456e;
+  border: 1px solid #34577f;
+  border-radius: 8px;
+  color: #ffffff;
+  padding: 12px;
+  font: inherit;
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 24px;
+}
+
+.ap-modal textarea:focus {
+  border-color: #38bdf8;
+}
+
+.ap-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

@@ -12,6 +12,11 @@ export default function RepairRequestDetails() {
   const [error, setError] = useState('');
   const { user } = useContext(AuthContext);
 
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [messageError, setMessageError] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+
   useEffect(() => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const eventSource = new EventSource(`${API_URL}/api/repair/${id}/updates`);
@@ -32,6 +37,86 @@ export default function RepairRequestDetails() {
       eventSource.close();
     };
   }, [id]);
+
+  useEffect(() => {
+    async function fetchMessages() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const res = await fetch(`${API_URL}/api/messages/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setMessages(data.messages || []);
+        }
+      } catch (err) {
+        console.error('Error fetching messages:', err);
+      }
+    }
+
+    if (id) {
+      fetchMessages();
+    }
+  }, [id]);
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+
+    setSendingMessage(true);
+    setMessageError('');
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ repairId: id, content: newMessage }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to send message');
+      }
+
+      setMessages(prev => [...prev, data.message]);
+      setNewMessage('');
+    } catch (err) {
+      setMessageError(err.message);
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleFlagMessage = async (messageId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/messages/${messageId}/flag`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to flag message');
+      }
+
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, flagged: true } : m));
+      alert('Message has been flagged for admin review.');
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
 
   useEffect(() => {
     async function fetchRepairDetails() {
@@ -173,6 +258,60 @@ export default function RepairRequestDetails() {
             <div className="rd-info-item full">
               <label>Service Address</label>
               <p>{repair.address || 'No specific address provided'}</p>
+            </div>
+          </div>
+
+          <div className="rd-section">
+            <h3>Repair Discussion</h3>
+            <div className="rd-chat-box">
+              <div className="rd-chat-messages">
+                {messages.length === 0 ? (
+                  <p className="rd-chat-empty">No messages yet. Start the conversation!</p>
+                ) : (
+                  messages.map(msg => {
+                    const isSelf = msg.sender_id === user?.id || msg.sender_email === user?.email;
+                    return (
+                      <div key={msg.id} className={`rd-chat-message ${isSelf ? 'self' : 'other'}`}>
+                        <div className="rd-msg-meta">
+                          <span className="rd-msg-sender">{msg.sender_name} ({msg.sender_role})</span>
+                          <span className="rd-msg-time">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className="rd-msg-bubble">
+                          <p>{msg.content}</p>
+                          {msg.flagged ? (
+                            <span className="rd-flag-indicator" title="This message has been flagged for moderation">🚩 Flagged</span>
+                          ) : (
+                            !isSelf && (
+                              <button
+                                type="button"
+                                className="rd-btn-flag"
+                                onClick={() => handleFlagMessage(msg.id)}
+                                title="Flag as inappropriate"
+                              >
+                                🏳️ Flag
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <form onSubmit={handleSendMessage} className="rd-chat-form">
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  disabled={sendingMessage}
+                  required
+                />
+                <button type="submit" className="rd-btn-send" disabled={sendingMessage}>
+                  {sendingMessage ? 'Sending...' : 'Send'}
+                </button>
+              </form>
+              {messageError && <p className="rd-chat-error">{messageError}</p>}
             </div>
           </div>
 

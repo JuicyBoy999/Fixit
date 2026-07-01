@@ -12,6 +12,7 @@ import BookRepair from './pages/BookRepair';
 import TechnicianDirectory from './pages/TechnicianDirectory';
 import TechnicianProfile from './pages/TechnicianProfile';
 import RepairRequestDetails from './pages/RepairRequestDetails';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin-panel" element={<AdminPanel />} />
           <Route path="/forgot-password" element={<RequestPasswordReset />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
