@@ -9,8 +9,12 @@ const AdminPanel = () => {
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [suspendedAccounts, setSuspendedAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [accountsLoading, setAccountsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [accountsError, setAccountsError] = useState(null);
 
   // Warning Modal State
   const [warningModalOpen, setWarningModalOpen] = useState(false);
@@ -31,6 +35,8 @@ const AdminPanel = () => {
       navigate('/admin-login');
     } else {
       fetchFlaggedMessages();
+      fetchAccounts();
+      fetchSuspendedAccounts();
     }
   }, [user, navigate, logout]);
 
@@ -54,6 +60,107 @@ const AdminPanel = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAccounts = async () => {
+    setAccountsLoading(true);
+    setAccountsError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/admin/accounts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to fetch accounts');
+      }
+      setAccounts(data.accounts || []);
+    } catch (err) {
+      setAccountsError(err.message);
+    } finally {
+      setAccountsLoading(false);
+    }
+  };
+
+  const fetchSuspendedAccounts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/admin/accounts/suspended`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to fetch suspended accounts');
+      }
+      setSuspendedAccounts(data.accounts || []);
+    } catch (err) {
+      setAccountsError(err.message);
+    }
+  };
+
+  const refreshAccounts = async () => {
+    await Promise.all([fetchAccounts(), fetchSuspendedAccounts()]);
+  };
+
+  const handleSuspendAccount = async (account) => {
+    const reason = window.prompt(`Reason for suspending ${account.name}:`);
+    if (reason === null) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/admin/accounts/${account.type}/${account.id}/suspend`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reason }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to suspend account');
+      }
+
+      await refreshAccounts();
+      alert('Account suspended and notification sent.');
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleReinstateAccount = async (account) => {
+    if (!window.confirm(`Reinstate ${account.name}?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/admin/accounts/${account.type}/${account.id}/reinstate`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to reinstate account');
+      }
+
+      await refreshAccounts();
+      alert('Account reinstated successfully.');
+    } catch (err) {
+      alert(`Error: ${err.message}`);
     }
   };
 
@@ -147,6 +254,84 @@ const AdminPanel = () => {
         </header>
 
         <section className="ap-heading-row">
+          <h1>Admin Dashboard</h1>
+          <p>Review flagged messages and manage customer or technician account access.</p>
+        </section>
+
+        <section className="ap-section">
+          <div className="ap-section-head">
+            <div>
+              <h2>User Management</h2>
+              <p>{suspendedAccounts.length} suspended account{suspendedAccounts.length === 1 ? '' : 's'}</p>
+            </div>
+            <button className="ap-btn ap-btn-secondary" type="button" onClick={refreshAccounts}>
+              Refresh
+            </button>
+          </div>
+
+          {accountsLoading ? (
+            <div className="ap-state">Loading accounts...</div>
+          ) : accountsError ? (
+            <div className="ap-state ap-state-error">Error: {accountsError}</div>
+          ) : accounts.length === 0 ? (
+            <div className="ap-empty">
+              <h2>No Accounts Found</h2>
+              <p>User and technician accounts will appear here after they are created.</p>
+            </div>
+          ) : (
+            <div className="ap-table-wrap">
+              <table className="ap-table">
+                <thead>
+                  <tr>
+                    <th>Account</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {accounts.map((account) => (
+                    <tr key={`${account.type}-${account.id}`}>
+                      <td>
+                        <div className="sender-info">{account.name}</div>
+                        <div className="sender-email">{account.email}</div>
+                      </td>
+                      <td className="ap-capitalize">{account.type}</td>
+                      <td>{account.city}</td>
+                      <td>
+                        <span className={`ap-status ap-status-${account.status}`}>
+                          {account.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="ap-btn-row">
+                          {account.status === 'active' ? (
+                            <button
+                              className="ap-btn ap-btn-danger"
+                              onClick={() => handleSuspendAccount(account)}
+                            >
+                              Suspend
+                            </button>
+                          ) : (
+                            <button
+                              className="ap-btn ap-btn-primary"
+                              onClick={() => handleReinstateAccount(account)}
+                            >
+                              Reinstate
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <section className="ap-heading-row ap-moderation-heading">
           <h1>Flagged Messages Queue</h1>
           <p>Review and moderate messages flagged as inappropriate by users.</p>
         </section>

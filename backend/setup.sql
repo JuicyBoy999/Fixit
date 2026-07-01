@@ -7,8 +7,13 @@ CREATE TABLE IF NOT EXISTS users (
     city VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) DEFAULT 'user',
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active','suspended','deactivated')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_status_check;
+ALTER TABLE users ADD CONSTRAINT users_status_check CHECK (status IN ('active','suspended','deactivated'));
 
 CREATE TABLE IF NOT EXISTS password_resets (
     id SERIAL PRIMARY KEY,
@@ -57,9 +62,14 @@ CREATE TABLE IF NOT EXISTS technician_profiles (
     location VARCHAR(100),
     years_experience INTEGER DEFAULT 0,
     hourly_rate DECIMAL(10,2) DEFAULT 0.00,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active','suspended','deactivated')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE technician_profiles ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+ALTER TABLE technician_profiles DROP CONSTRAINT IF EXISTS technician_profiles_status_check;
+ALTER TABLE technician_profiles ADD CONSTRAINT technician_profiles_status_check CHECK (status IN ('active','suspended','deactivated'));
 
 CREATE TABLE IF NOT EXISTS technician_certifications (
     id SERIAL PRIMARY KEY,

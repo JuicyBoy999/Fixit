@@ -61,6 +61,10 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    if (user.status === 'suspended' || user.status === 'deactivated') {
+      return res.status(403).json({ message: "Your account has been suspended. Please contact FixIt support for details." });
+    }
+
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
