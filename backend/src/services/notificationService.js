@@ -119,3 +119,38 @@ export const sendWarningEmail = async (email, firstName, reason) => {
   }
 };
 
+export const sendPaymentConfirmationEmail = async (customerEmail, customerName, repairDetails) => {
+  try {
+    await transporter.sendMail({
+      from: `"FixIt" <${process.env.EMAIL_FROM}>`,
+      to: customerEmail,
+      subject: `Payment Confirmed — Your FixIt Repair`,
+      html: `
+        <div style="background-color:#0d1117;color:#fff;font-family:'Segoe UI',sans-serif;padding:40px;border-radius:16px;max-width:600px;margin:20px auto;border:1px solid #1e2a3a;">
+          <div style="display:flex;align-items:center;margin-bottom:24px;">
+            <div style="width:38px;height:38px;background:#38bdf8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#0d1117;font-weight:bold;margin-right:12px;">F</div>
+            <span style="font-size:20px;font-weight:500;">Fix<b>It</b></span>
+          </div>
+          <h1 style="font-size:24px;margin-bottom:16px;color:#4ade80;">Payment Confirmed ✓</h1>
+          <p style="color:#6b7a8d;font-size:16px;line-height:1.5;margin-bottom:24px;">
+            Hello ${customerName}, your repair service has been completed and payment recorded successfully.
+          </p>
+          <div style="background:#111827;border:1px solid #1e2d40;border-radius:12px;padding:20px;margin-bottom:30px;">
+            <p style="margin:0 0 8px;color:#8b9ab0;font-size:12px;text-transform:uppercase;font-weight:600;">Device</p>
+            <p style="margin:0 0 16px;font-size:18px;color:#fff;">${repairDetails.device_name}</p>
+            <p style="margin:0 0 8px;color:#8b9ab0;font-size:12px;text-transform:uppercase;font-weight:600;">Amount</p>
+            <p style="margin:0 0 16px;font-size:18px;color:#4ade80;">NPR ${repairDetails.cost ? repairDetails.cost.toLocaleString() : 'N/A'}</p>
+            <p style="margin:0 0 8px;color:#8b9ab0;font-size:12px;text-transform:uppercase;font-weight:600;">Repair ID</p>
+            <p style="margin:0;font-size:14px;color:#fff;">#${repairDetails.id}</p>
+          </div>
+          <p style="text-align:center;margin-top:30px;font-size:12px;color:#3d5068;">
+            Thank you for using FixIt. Keep this email as your payment record.
+          </p>
+        </div>
+      `
+    });
+    console.log(`Payment confirmation sent to ${customerEmail}`);
+  } catch (error) {
+    console.error('Error sending payment confirmation:', error);
+  }
+};
