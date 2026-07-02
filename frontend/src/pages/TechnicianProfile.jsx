@@ -22,6 +22,7 @@ export default function TechnicianProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [technician, setTechnician] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
 
@@ -46,6 +47,17 @@ export default function TechnicianProfile() {
         }
 
         setTechnician(data.technician);
+
+        const reviewsResponse = await fetch(`${API_URL}/api/reviews/technicians/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const reviewsData = await reviewsResponse.json();
+
+        if (!reviewsResponse.ok) {
+          throw new Error(reviewsData.message || 'Failed to load technician reviews');
+        }
+
+        setReviews(reviewsData.reviews || []);
         setStatus('ready');
       } catch (err) {
         setError(err.message || 'Failed to load technician profile');
@@ -129,17 +141,18 @@ export default function TechnicianProfile() {
             <section className="tp-panel">
               <h2>Customer Reviews</h2>
               <div className="tp-review-list">
-                {technician.reviews.length === 0 && (
+                {reviews.length === 0 && (
                   <p className="tp-muted">No reviews yet.</p>
                 )}
 
-                {technician.reviews.map((review) => (
+                {reviews.map((review) => (
                   <article className="tp-review" key={review.id}>
                     <div className="tp-review-head">
-                      <strong>{review.reviewer_name}</strong>
-                      <span>{review.rating}/5 rating</span>
+                      <strong>{review.first_name} {review.last_name}</strong>
+                      <span>{review.rating}/5 rating - {new Date(review.created_at).toLocaleDateString()}</span>
                     </div>
-                    <p>{review.comment}</p>
+                    {review.body && <p>{review.body}</p>}
+                    {review.edited_at && <span>Edited {new Date(review.edited_at).toLocaleDateString()}</span>}
                   </article>
                 ))}
               </div>

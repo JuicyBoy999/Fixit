@@ -30,3 +30,16 @@ CREATE TABLE IF NOT EXISTS user_warnings (
     reason TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migration for US-41/US-42: Customer Reviews
+CREATE TABLE IF NOT EXISTS reviews (
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER UNIQUE REFERENCES repairs(id) ON DELETE CASCADE,
+    customer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    technician_id INTEGER REFERENCES technician_profiles(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    body TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    edited_at TIMESTAMP,
+    original_body TEXT
+);

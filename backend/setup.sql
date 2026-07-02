@@ -89,6 +89,18 @@ CREATE TABLE IF NOT EXISTS technician_reviews (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS reviews (
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER UNIQUE REFERENCES repairs(id) ON DELETE CASCADE,
+    customer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    technician_id INTEGER REFERENCES technician_profiles(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    body TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    edited_at TIMESTAMP,
+    original_body TEXT
+);
+
 INSERT INTO technician_profiles (full_name, title, bio, skills, location, years_experience, hourly_rate)
 SELECT
     'Aarav Shrestha',
