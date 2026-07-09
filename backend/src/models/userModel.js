@@ -1,11 +1,11 @@
 import pool from '../config/db.js';
 import bcrypt from 'bcrypt';
 
-export const createUser = async (firstName, lastName, email, phone, city, password) => {
+export const createUser = async (firstName, lastName, email, phone, city, password, role = 'user') => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const result = await pool.query(
-    "INSERT INTO users (first_name, last_name, email, phone, city, password) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-    [firstName, lastName, email, phone, city, hashedPassword]
+    "INSERT INTO users (first_name, last_name, email, phone, city, password, role) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+    [firstName, lastName, email, phone, city, hashedPassword, role]
   );
   return result.rows[0];
 };

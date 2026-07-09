@@ -6,7 +6,7 @@ dotenv.config();
 
 export const addUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, city, password } = req.body;
+    const { firstName, lastName, email, phone, city, password, role } = req.body;
 
     if (!firstName || !lastName || !email || !phone || !city || !password) {
       return res.status(400).json({
@@ -26,7 +26,8 @@ export const addUser = async (req, res) => {
       });
     }
 
-    const user = await createUser(firstName, lastName, email, phone, city, password);
+    const validRole = role === 'technician' ? 'technician' : 'user';
+    const user = await createUser(firstName, lastName, email, phone, city, password, validRole);
 
     return res.status(201).json({
       message: "Account created successfully",

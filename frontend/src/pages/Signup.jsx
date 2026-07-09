@@ -3,6 +3,7 @@ import './Signup.css'
 
 export default function Signup() {
 
+  const [role, setRole] = useState('user')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -44,7 +45,7 @@ export default function Signup() {
       const res = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, email, phone, city, password }),
+        body: JSON.stringify({ firstName, lastName, email, phone, city, password, role }),
       })
 
       const data = await res.json()
@@ -89,7 +90,16 @@ export default function Signup() {
         </div>
 
         <h1>Create your account</h1>
-        <p className="sg-tagline">Join customers getting same-day repairs</p>
+        <p className="sg-tagline">{role === 'technician' ? 'Join as a certified repair technician' : 'Join customers getting same-day repairs'}</p>
+
+        <div className="sg-role-toggle">
+          <button type="button" className={`sg-role-btn${role === 'user' ? ' sg-role-btn--active' : ''}`} onClick={() => setRole('user')}>
+            Customer
+          </button>
+          <button type="button" className={`sg-role-btn${role === 'technician' ? ' sg-role-btn--active' : ''}`} onClick={() => setRole('technician')}>
+            Technician
+          </button>
+        </div>
 
         {error && <p className="sg-error">{error}</p>}
 
