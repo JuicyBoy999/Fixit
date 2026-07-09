@@ -1,6 +1,33 @@
 
 import pool from '../config/db.js';
 
+export const createAvailabilityTables = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS technician_working_hours (
+      id             SERIAL PRIMARY KEY,
+      technician_id  INTEGER NOT NULL,
+      day_of_week    INTEGER NOT NULL,
+      start_time     TIME,
+      end_time       TIME,
+      is_active      BOOLEAN DEFAULT TRUE,
+      updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (technician_id, day_of_week)
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS technician_unavailability (
+      id                SERIAL PRIMARY KEY,
+      technician_id     INTEGER NOT NULL,
+      unavailable_date  DATE NOT NULL,
+      reason            TEXT,
+      created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (technician_id, unavailable_date)
+    )
+  `);
+};
+
+createAvailabilityTables();
+
 export const getWorkingHours = async (technicianId) => {
   const result = await pool.query(
     `SELECT id, day_of_week, start_time, end_time, is_active

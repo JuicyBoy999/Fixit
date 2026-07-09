@@ -15,6 +15,10 @@ export const createRepairRequestsTable = async () => {
       created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
+  // Columns added for cancel / reschedule / reminder features (safe to run repeatedly)
+  await pool.query(`ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS preferred_time TEXT`);
+  await pool.query(`ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS cancel_reason  TEXT`);
+  await pool.query(`ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS reminder_sent  BOOLEAN DEFAULT FALSE`);
 };
 
 createRepairRequestsTable();

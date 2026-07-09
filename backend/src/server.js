@@ -15,6 +15,8 @@ import serviceAreaRoute from './routes/serviceAreaRoute.js';
 import availabilityRoutes from './routes/availabilityRoutes.js';
 import './models/repairRequestModel.js';
 import repairRequestRoute from './routes/repairRequestRoute.js';
+import './models/notificationModel.js';
+import notificationRoute from './routes/notificationRoute.js';
 
 dotenv.config();
 
@@ -72,6 +74,8 @@ app.use("/api/service-area", serviceAreaRoute);
 
 app.use("/api/availability", availabilityRoutes);
 
+app.use("/api/notifications", notificationRoute);
+
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", {
@@ -100,5 +104,14 @@ app.get("/auth/user", (req, res) => {
 app.get("/auth/logout", (req, res) => {
   req.logout(() => res.redirect("http://localhost:5173/login"));
 });
+
+// Auto-generate appointment reminders for next-day bookings (once at startup, then hourly)
+import { generateDueReminders } from './controllers/repairRequestController.js';
+const runReminders = () =>
+  generateDueReminders()
+    .then(n => { if (n) console.log(`Appointment reminders sent: ${n}`); })
+    .catch(err => console.error('Reminder job failed:', err.message));
+setTimeout(runReminders, 5000);
+setInterval(runReminders, 60 * 60 * 1000);
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
