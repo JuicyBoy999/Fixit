@@ -12,13 +12,14 @@ export const getTechnicians = async () => {
        tp.location,
        tp.years_experience,
        tp.status,
+       tp.verification_status,
        COALESCE(ROUND(AVG(rv.rating)::numeric, 1), 0) AS average_rating,
        COUNT(DISTINCT rv.id)::int AS review_count,
        COUNT(DISTINCT tc.id)::int AS certification_count
      FROM technician_profiles tp
      LEFT JOIN reviews rv ON rv.technician_id = tp.id
      LEFT JOIN technician_certifications tc ON tc.technician_id = tp.id
-     WHERE tp.status = 'active'
+     WHERE tp.status = 'active' AND tp.verification_status = 'approved'
      GROUP BY tp.id
      ORDER BY average_rating DESC, review_count DESC, tp.full_name ASC`
   );
@@ -37,11 +38,12 @@ export const getTechnicianById = async (id) => {
        tp.location,
        tp.years_experience,
        tp.status,
+       tp.verification_status,
        COALESCE(ROUND(AVG(rv.rating)::numeric, 1), 0) AS average_rating,
        COUNT(DISTINCT rv.id)::int AS review_count
      FROM technician_profiles tp
      LEFT JOIN reviews rv ON rv.technician_id = tp.id
-     WHERE tp.id = $1 AND tp.status = 'active'
+     WHERE tp.id = $1 AND tp.status = 'active' AND tp.verification_status = 'approved'
      GROUP BY tp.id`,
     [id]
   );
@@ -81,6 +83,7 @@ export const getManageableTechnicians = async () => {
        tp.location,
        tp.years_experience,
        tp.status,
+       tp.verification_status,
        tp.created_at,
        u.email,
        u.first_name,
@@ -101,6 +104,8 @@ export const getTechnicianAccountById = async (id) => {
        tp.title,
        tp.location,
        tp.status,
+       tp.verification_status,
+       tp.credential_documents,
        u.email,
        u.first_name,
        u.last_name
@@ -119,6 +124,41 @@ export const updateTechnicianStatus = async (id, status) => {
      WHERE id = $2
      RETURNING id, user_id, full_name, title, location, status, created_at`,
     [status, id]
+  );
+  return result.rows[0];
+};
+
+export const getPendingTechnicianVerifications = async () => {
+  const result = await pool.query(
+    `SELECT
+       tp.id,
+       tp.user_id,
+       tp.full_name,
+       tp.title,
+       tp.location,
+       tp.years_experience,
+       tp.status,
+       tp.verification_status,
+       tp.credential_documents,
+       tp.created_at,
+       u.email,
+       u.first_name,
+       u.last_name
+     FROM technician_profiles tp
+     LEFT JOIN users u ON tp.user_id = u.id
+     WHERE tp.verification_status = 'pending'
+     ORDER BY tp.created_at ASC`
+  );
+  return result.rows;
+};
+
+export const updateTechnicianVerificationStatus = async (id, verificationStatus) => {
+  const result = await pool.query(
+    `UPDATE technician_profiles
+     SET verification_status = $1, updated_at = CURRENT_TIMESTAMP
+     WHERE id = $2
+     RETURNING id, user_id, full_name, title, location, status, verification_status, credential_documents, created_at`,
+    [verificationStatus, id]
   );
   return result.rows[0];
 };

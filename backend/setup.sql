@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS technician_profiles (
     years_experience INTEGER DEFAULT 0,
     hourly_rate DECIMAL(10,2) DEFAULT 0.00,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active','suspended','deactivated')),
+    verification_status VARCHAR(20) DEFAULT 'pending' CHECK (verification_status IN ('pending','approved','rejected')),
+    credential_documents JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -70,6 +72,10 @@ CREATE TABLE IF NOT EXISTS technician_profiles (
 ALTER TABLE technician_profiles ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
 ALTER TABLE technician_profiles DROP CONSTRAINT IF EXISTS technician_profiles_status_check;
 ALTER TABLE technician_profiles ADD CONSTRAINT technician_profiles_status_check CHECK (status IN ('active','suspended','deactivated'));
+ALTER TABLE technician_profiles ADD COLUMN IF NOT EXISTS verification_status VARCHAR(20) DEFAULT 'pending';
+ALTER TABLE technician_profiles ADD COLUMN IF NOT EXISTS credential_documents JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE technician_profiles DROP CONSTRAINT IF EXISTS technician_profiles_verification_status_check;
+ALTER TABLE technician_profiles ADD CONSTRAINT technician_profiles_verification_status_check CHECK (verification_status IN ('pending','approved','rejected'));
 
 CREATE TABLE IF NOT EXISTS technician_certifications (
     id SERIAL PRIMARY KEY,
@@ -101,7 +107,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     original_body TEXT
 );
 
-INSERT INTO technician_profiles (full_name, title, bio, skills, location, years_experience, hourly_rate)
+INSERT INTO technician_profiles (full_name, title, bio, skills, location, years_experience, hourly_rate, verification_status)
 SELECT
     'Aarav Shrestha',
     'Senior Mobile and Laptop Repair Specialist',
@@ -109,12 +115,13 @@ SELECT
     ARRAY['Smartphone repair','Laptop diagnostics','Board repair','Data recovery'],
     'Kathmandu',
     6,
-    800.00
+    800.00,
+    'approved'
 WHERE NOT EXISTS (
     SELECT 1 FROM technician_profiles WHERE full_name = 'Aarav Shrestha'
 );
 
-INSERT INTO technician_profiles (full_name, title, bio, skills, location, years_experience, hourly_rate)
+INSERT INTO technician_profiles (full_name, title, bio, skills, location, years_experience, hourly_rate, verification_status)
 SELECT
     'Maya Gurung',
     'Home Appliance and TV Technician',
@@ -122,7 +129,8 @@ SELECT
     ARRAY['TV repair','Home appliances','Power supply diagnosis','Preventive maintenance'],
     'Lalitpur',
     5,
-    1000.00
+    1000.00,
+    'approved'
 WHERE NOT EXISTS (
     SELECT 1 FROM technician_profiles WHERE full_name = 'Maya Gurung'
 );

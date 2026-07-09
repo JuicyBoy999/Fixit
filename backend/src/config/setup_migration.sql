@@ -11,6 +11,14 @@ UPDATE technician_profiles SET status = 'active' WHERE status IS NULL;
 ALTER TABLE technician_profiles DROP CONSTRAINT IF EXISTS technician_profiles_status_check;
 ALTER TABLE technician_profiles ADD CONSTRAINT technician_profiles_status_check CHECK (status IN ('active','suspended','deactivated'));
 
+-- Migration for US-44: Technician Credential Verification
+ALTER TABLE technician_profiles ADD COLUMN IF NOT EXISTS verification_status VARCHAR(20);
+UPDATE technician_profiles SET verification_status = 'approved' WHERE verification_status IS NULL;
+ALTER TABLE technician_profiles ALTER COLUMN verification_status SET DEFAULT 'pending';
+ALTER TABLE technician_profiles DROP CONSTRAINT IF EXISTS technician_profiles_verification_status_check;
+ALTER TABLE technician_profiles ADD CONSTRAINT technician_profiles_verification_status_check CHECK (verification_status IN ('pending','approved','rejected'));
+ALTER TABLE technician_profiles ADD COLUMN IF NOT EXISTS credential_documents JSONB DEFAULT '[]'::jsonb;
+
 -- Create messages table to hold chat logs for repairs
 CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,

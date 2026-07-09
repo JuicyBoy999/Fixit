@@ -11,10 +11,13 @@ const AdminPanel = () => {
   const [messages, setMessages] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [suspendedAccounts, setSuspendedAccounts] = useState([]);
+  const [pendingTechnicians, setPendingTechnicians] = useState([]);
   const [loading, setLoading] = useState(true);
   const [accountsLoading, setAccountsLoading] = useState(true);
+  const [verificationLoading, setVerificationLoading] = useState(true);
   const [error, setError] = useState(null);
   const [accountsError, setAccountsError] = useState(null);
+  const [verificationError, setVerificationError] = useState(null);
 
   // Warning Modal State
   const [warningModalOpen, setWarningModalOpen] = useState(false);
@@ -37,6 +40,7 @@ const AdminPanel = () => {
       fetchFlaggedMessages();
       fetchAccounts();
       fetchSuspendedAccounts();
+      fetchPendingTechnicians();
     }
   }, [user, navigate, logout]);
 
@@ -105,6 +109,29 @@ const AdminPanel = () => {
     }
   };
 
+  const fetchPendingTechnicians = async () => {
+    setVerificationLoading(true);
+    setVerificationError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/admin/technician-verifications/pending`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to fetch pending technicians');
+      }
+      setPendingTechnicians(data.technicians || []);
+    } catch (err) {
+      setVerificationError(err.message);
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
   const refreshAccounts = async () => {
     await Promise.all([fetchAccounts(), fetchSuspendedAccounts()]);
   };
@@ -163,6 +190,83 @@ const AdminPanel = () => {
       alert(`Error: ${err.message}`);
     }
   };
+
+  const handleApproveTechnician = async (technician) => {
+    if (!window.confirm(`Approve credentials for ${technician.name}?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/admin/technician-verifications/${technician.id}/approve`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to approve technician');
+      }
+
+      await fetchPendingTechnicians();
+      alert('Technician approved and notified.');
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleRejectTechnician = async (technician) => {
+    const reason = window.prompt(`Reason for rejecting ${technician.name}:`);
+    if (reason === null) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/admin/technician-verifications/${technician.id}/reject`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reason }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to reject technician');
+      }
+
+      await fetchPendingTechnicians();
+      alert('Technician rejected and notified.');
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const getDocumentUrl = (document) => {
+    const rawUrl = typeof document === 'string'
+      ? document
+      : document?.url || document?.href || document?.path || '';
+
+    if (!rawUrl) return '';
+    if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
+
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    return `${API_URL}${rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`}`;
+  };
+
+  const getDocumentLabel = (document, index) => {
+    if (typeof document === 'string') {
+      return document.split('/').pop() || `Credential ${index + 1}`;
+    }
+
+    return document?.name || document?.filename || document?.label || `Credential ${index + 1}`;
+  };
+
+  const isImageDocument = (url) => /\.(png|jpe?g|webp|gif)$/i.test(url.split('?')[0]);
 
   const handleDeleteMessage = async (messageId) => {
     if (!window.confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
@@ -256,6 +360,101 @@ const AdminPanel = () => {
         <section className="ap-heading-row">
           <h1>Admin Dashboard</h1>
           <p>Review flagged messages and manage customer or technician account access.</p>
+        </section>
+
+        <section className="ap-section">
+          <div className="ap-section-head">
+            <div>
+              <h2>Credential Verification Queue</h2>
+              <p>{pendingTechnicians.length} pending technician{pendingTechnicians.length === 1 ? '' : 's'}</p>
+            </div>
+            <button className="ap-btn ap-btn-secondary" type="button" onClick={fetchPendingTechnicians}>
+              Refresh
+            </button>
+          </div>
+
+          {verificationLoading ? (
+            <div className="ap-state">Loading pending verifications...</div>
+          ) : verificationError ? (
+            <div className="ap-state ap-state-error">Error: {verificationError}</div>
+          ) : pendingTechnicians.length === 0 ? (
+            <div className="ap-empty">
+              <h2>No Pending Credentials</h2>
+              <p>Technician credential submissions awaiting review will appear here.</p>
+            </div>
+          ) : (
+            <div className="ap-table-wrap">
+              <table className="ap-table">
+                <thead>
+                  <tr>
+                    <th>Technician</th>
+                    <th>Documents</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingTechnicians.map((technician) => (
+                    <tr key={technician.id}>
+                      <td>
+                        <div className="sender-info">{technician.name}</div>
+                        <div className="sender-email">{technician.email}</div>
+                        <div className="sender-email">{technician.title} - {technician.location}</div>
+                      </td>
+                      <td>
+                        {(technician.documents || []).length === 0 ? (
+                          <span className="ap-muted">No documents attached</span>
+                        ) : (
+                          <div className="ap-doc-list">
+                            {technician.documents.map((document, index) => {
+                              const documentUrl = getDocumentUrl(document);
+                              return (
+                                <a
+                                  className="ap-doc-link"
+                                  href={documentUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  key={`${technician.id}-${index}`}
+                                >
+                                  {isImageDocument(documentUrl) && (
+                                    <img src={documentUrl} alt="" className="ap-doc-preview" />
+                                  )}
+                                  <span>{getDocumentLabel(document, index)}</span>
+                                </a>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <span className={`ap-status ap-status-${technician.verificationStatus}`}>
+                          {technician.verificationStatus}
+                        </span>
+                      </td>
+                      <td>{new Date(technician.createdAt).toLocaleString()}</td>
+                      <td>
+                        <div className="ap-btn-row">
+                          <button
+                            className="ap-btn ap-btn-primary"
+                            onClick={() => handleApproveTechnician(technician)}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            className="ap-btn ap-btn-danger"
+                            onClick={() => handleRejectTechnician(technician)}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         <section className="ap-section">
