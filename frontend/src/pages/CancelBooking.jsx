@@ -11,7 +11,7 @@ function mapBooking(r) {
     issue: r.fault_description,
     date: (r.preferred_date || '').split('T')[0],
     time: r.preferred_time || '—',
-    tech: r.technician_id ? `Technician #${r.technician_id}` : 'Not assigned',
+    tech: r.technician_first_name ? `${r.technician_first_name} ${r.technician_last_name}` : r.technician_id ? `Technician #${r.technician_id}` : 'Not assigned',
     city: r.customer_area,
     status: r.status ? r.status.charAt(0).toUpperCase() + r.status.slice(1) : 'Pending',
   }
@@ -39,15 +39,19 @@ export default function CancelBooking() {
 
   useEffect(() => {
     if (!user.id) return
-    fetch(`${API}/my/${user.id}`)
-      .then(r => r.json())
-      .then(data => {
-        const list = (data.requests || [])
-          .filter(r => r.status !== 'cancelled')
-          .map(mapBooking)
-        setBookings(list)
-      })
+    fetch(`${API}/claim/${user.id}`, { method: 'POST' })
       .catch(() => {})
+      .finally(() => {
+        fetch(`${API}/my/${user.id}`)
+          .then(r => r.json())
+          .then(data => {
+            const list = (data.requests || [])
+              .filter(r => r.status !== 'cancelled')
+              .map(mapBooking)
+            setBookings(list)
+          })
+          .catch(() => {})
+      })
   }, [user.id])
 
   function handleSelect(booking) {
@@ -234,7 +238,7 @@ export default function CancelBooking() {
                 Done
               </button>
 
-              <button className="cb-book-again-btn" onClick={() => navigate('/book')}>
+              <button className="cb-book-again-btn" onClick={() => navigate('/book-repair')}>
                 Book another repair
               </button>
             </>

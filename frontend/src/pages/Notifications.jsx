@@ -5,14 +5,14 @@ import './Notifications.css'
 const API = 'http://localhost:5000/api/notifications'
 
 const ICON_MAP = {
-  confirmed: { icon: '✓', cls: 'notif-icon-success' },
-  success: { icon: '✓', cls: 'notif-icon-success' },
-  onway: { icon: '→', cls: 'notif-icon-info' },
-  info: { icon: '→', cls: 'notif-icon-info' },
-  reminder: { icon: '⏰', cls: 'notif-icon-warning' },
-  warning: { icon: '⏰', cls: 'notif-icon-warning' },
-  cancelled: { icon: '✕', cls: 'notif-icon-danger' },
-  danger: { icon: '✕', cls: 'notif-icon-danger' },
+  confirmed: { icon: '✓', cls: 'nf-icon-success' },
+  success:   { icon: '✓', cls: 'nf-icon-success' },
+  onway:     { icon: '→', cls: 'nf-icon-info' },
+  info:      { icon: '→', cls: 'nf-icon-info' },
+  reminder:  { icon: '⏰', cls: 'nf-icon-warning' },
+  warning:   { icon: '⏰', cls: 'nf-icon-warning' },
+  cancelled: { icon: '✕', cls: 'nf-icon-danger' },
+  danger:    { icon: '✕', cls: 'nf-icon-danger' },
 }
 
 function relativeTime(ts) {
@@ -31,11 +31,12 @@ export default function Notifications() {
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState([])
   const [filter, setFilter] = useState('all')
+  const [loading, setLoading] = useState(true)
 
   const user = JSON.parse(localStorage.getItem('user') || '{}')
 
   useEffect(() => {
-    if (!user.id) return
+    if (!user.id) { setLoading(false); return }
     fetch(`${API}/${user.id}`)
       .then(r => r.json())
       .then(data => {
@@ -50,6 +51,7 @@ export default function Notifications() {
         setNotifs(list)
       })
       .catch(() => {})
+      .finally(() => setLoading(false))
   }, [user.id])
 
   const unread = notifs.filter(n => !n.read).length
@@ -69,89 +71,103 @@ export default function Notifications() {
     fetch(`${API}/${id}/read`, { method: 'PATCH' }).catch(() => {})
   }
 
-  const filtered = notifs.filter(n => {
-    if (filter === 'unread') return !n.read
-    return true
-  })
+  const filtered = filter === 'unread' ? notifs.filter(n => !n.read) : notifs
 
   return (
     <div className="nf-page">
-      <div className="nf-modal">
-
-        <div className="nf-header">
-          <div className="nf-header-left">
-            <div className="nf-logo">⚡</div>
-            <div>
-              <div className="nf-title">Notifications</div>
-              <div className="nf-subtitle">Stay up to date with your repairs</div>
-            </div>
+      <aside className="nf-sidebar">
+        <div className="nf-brand">⚡ Fixit</div>
+        <div className="nf-sidebar-info">
+          <h2 className="nf-sidebar-heading">Notifications</h2>
+          <p className="nf-sidebar-sub">Stay up to date with your repair bookings and technician updates.</p>
+        </div>
+        {unread > 0 && (
+          <div className="nf-sidebar-badge">
+            <span className="nf-count">{unread}</span>
+            <span className="nf-count-label">unread</span>
           </div>
-          {unread > 0 && <span className="nf-badge">{unread} new</span>}
+        )}
+        <div className="nf-sidebar-nav">
+          <button
+            className={`nf-nav-item ${filter === 'all' ? 'nf-nav-item--active' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            All <span className="nf-nav-count">{notifs.length}</span>
+          </button>
+          <button
+            className={`nf-nav-item ${filter === 'unread' ? 'nf-nav-item--active' : ''}`}
+            onClick={() => setFilter('unread')}
+          >
+            Unread <span className="nf-nav-count">{unread}</span>
+          </button>
+        </div>
+        <div className="nf-sidebar-actions">
+          {unread > 0 && (
+            <button className="nf-mark-all-btn" onClick={markAll}>Mark all as read</button>
+          )}
+          <button className="nf-back-btn" onClick={() => navigate('/dashboard')}>← Dashboard</button>
+        </div>
+      </aside>
+
+      <main className="nf-main">
+        <div className="nf-main-top">
+          <div>
+            <h1 className="nf-main-heading">
+              {filter === 'unread' ? 'Unread Notifications' : 'All Notifications'}
+            </h1>
+            <p className="nf-main-sub">
+              {filtered.length === 0
+                ? 'Nothing here yet.'
+                : `${filtered.length} notification${filtered.length !== 1 ? 's' : ''}`}
+            </p>
+          </div>
+          {unread > 0 && (
+            <button className="nf-mark-btn" onClick={markAll}>Mark all as read</button>
+          )}
         </div>
 
-        <div className="nf-body">
-          <div className="nf-toolbar">
-            <div className="nf-filters">
-              <button className={`nf-filter ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>All</button>
-              <button className={`nf-filter ${filter === 'unread' ? 'on' : ''}`} onClick={() => setFilter('unread')}>Unread</button>
-            </div>
-            {unread > 0 && (
-              <button className="nf-mark-all" onClick={markAll}>Mark all as read</button>
-            )}
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="nf-empty">
-              <div className="nf-empty-icon">🔔</div>
-              <p>No notifications</p>
-            </div>
-          ) : (
-            <div className="nf-list">
-              {filtered.map(n => {
-                const { icon, cls } = ICON_MAP[n.type] || ICON_MAP.reminder
-                return (
-                  <div key={n.id} className={`nf-item ${n.read ? '' : 'nf-item-unread'}`} onClick={() => markRead(n.id)}>
-                    <div className={`nf-item-icon ${cls}`}>{icon}</div>
-                    <div className="nf-item-content">
-                      <div className="nf-item-row">
-                        <span className="nf-item-title">{n.title}</span>
-                        <span className="nf-item-time">{n.time}</span>
-                      </div>
-                      <p className="nf-item-msg">{n.message}</p>
-                      {n.device && (
-                        <div className="nf-detail-box">
-                          <div className="nf-detail-row"><span>Device</span><span>{n.device}</span></div>
-                          <div className="nf-detail-row"><span>Technician</span><span>{n.tech}</span></div>
-                          <div className="nf-detail-row"><span>Date</span><span>{n.date}</span></div>
-                          <div className="nf-detail-row"><span>Time</span><span>{n.slot}</span></div>
-                        </div>
-                      )}
-                      <div className="nf-item-actions">
-                        {n.type === 'confirmed' && (
-                          <button className="nf-btn nf-btn-primary" onClick={e => { e.stopPropagation(); navigate('/book') }}>
-                            View booking
-                          </button>
-                        )}
-                        <button className="nf-btn" onClick={e => { e.stopPropagation(); dismiss(n.id) }}>
-                          Dismiss
-                        </button>
-                      </div>
-                    </div>
-                    {!n.read && <div className="nf-unread-dot" />}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          <div className="nf-footer">
-            <button className="nf-done-btn" onClick={() => navigate('/dashboard')}>
-              Done
+        {loading ? (
+          <div className="nf-loading">Loading notifications...</div>
+        ) : filtered.length === 0 ? (
+          <div className="nf-empty">
+            <div className="nf-empty-icon">🔔</div>
+            <p>{filter === 'unread' ? 'No unread notifications.' : 'No notifications yet.'}</p>
+            <button className="nf-btn-primary" onClick={() => navigate('/dashboard')} style={{ marginTop: '1.5rem' }}>
+              Back to Dashboard
             </button>
           </div>
-        </div>
-
-      </div>
+        ) : (
+          <div className="nf-list">
+            {filtered.map(n => {
+              const { icon, cls } = ICON_MAP[n.type] || ICON_MAP.info
+              return (
+                <div
+                  key={n.id}
+                  className={`nf-item${n.read ? '' : ' nf-item--unread'}`}
+                  onClick={() => markRead(n.id)}
+                >
+                  <div className={`nf-item-icon ${cls}`}>{icon}</div>
+                  <div className="nf-item-content">
+                    <div className="nf-item-row">
+                      <span className="nf-item-title">{n.title}</span>
+                      <div className="nf-item-meta">
+                        <span className="nf-item-time">{n.time}</span>
+                        {!n.read && <span className="nf-dot" />}
+                      </div>
+                    </div>
+                    <p className="nf-item-msg">{n.message}</p>
+                    <div className="nf-item-actions">
+                      <button className="nf-btn-dismiss" onClick={e => { e.stopPropagation(); dismiss(n.id) }}>
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </main>
     </div>
   )
 }

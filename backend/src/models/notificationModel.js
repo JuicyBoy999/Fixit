@@ -12,6 +12,7 @@ export const createNotificationTable = async () => {
       created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
+  await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS title TEXT`);
 };
 
 createNotificationTable();

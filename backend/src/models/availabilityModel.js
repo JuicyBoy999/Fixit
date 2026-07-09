@@ -130,10 +130,9 @@ function buildSlots(startTime, endTime) {
 }
 export const getTechniciansWithAvailability = async () => {
   const result = await pool.query(
-    `SELECT DISTINCT u.id, u.first_name, u.last_name, u.city
+    `SELECT u.id, u.first_name, u.last_name, u.city
      FROM users u
-     INNER JOIN technician_working_hours twh ON twh.technician_id = u.id
-     WHERE u.role = 'technician' AND twh.is_active = TRUE
+     WHERE u.role = 'technician'
      ORDER BY u.first_name`
   );
   return result.rows;

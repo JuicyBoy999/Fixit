@@ -81,6 +81,10 @@ export default function Signup() {
 
   return (
     <div className="sg-page">
+      <nav className="sg-nav">
+        <a href="/" className="sg-nav-logo">⚡ Fixit</a>
+        <a href="/login" className="sg-nav-link">Already have an account? <span>Sign in →</span></a>
+      </nav>
       <main className="sg-main">
       <div className="sg-box">
 

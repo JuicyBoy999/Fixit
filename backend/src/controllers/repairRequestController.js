@@ -3,9 +3,17 @@ import { addNotification } from '../models/notificationModel.js';
 
 export const listRepairRequests = async (req, res) => {
   try {
+    const techId = req.user?.id;
     const { rows } = await pool.query(
-      `SELECT * FROM repair_requests WHERE technician_id IS NULL ORDER BY created_at DESC`
-);
+      `SELECT r.*,
+              u.first_name AS technician_first_name,
+              u.last_name  AS technician_last_name
+       FROM repair_requests r
+       LEFT JOIN users u ON u.id = r.technician_id
+       WHERE r.technician_id IS NULL OR r.technician_id = $1
+       ORDER BY r.created_at DESC`,
+      [techId || null]
+    );
     res.json({ requests: rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -28,7 +36,8 @@ export const getRepairRequestById = async (req, res) => {
 
 export const createRepairRequest = async (req, res) => {
   try {
-    const { customer_id, technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area } = req.body;
+    const { technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area } = req.body;
+    const customer_id = req.user?.id || req.body.customer_id || null;
 
     if (!device_type || !preferred_date || !customer_area) {
       return res.status(400).json({ error: 'device_type, preferred_date and customer_area are required' });
@@ -67,8 +76,8 @@ export const updateRepairRequestStatus = async (req, res) => {
     }
 
     const { rows } = await pool.query(
-     `UPDATE repair_requests SET status = $1, technician_id = $2 WHERE id = $3 RETURNING *`
-[status, req.user.id, id]
+     `UPDATE repair_requests SET status = $1, technician_id = $2 WHERE id = $3 RETURNING *`,
+      [status, req.user.id, id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Request not found' });
 
@@ -91,16 +100,40 @@ export const updateRepairRequestStatus = async (req, res) => {
   }
 };
 
+// Claim any orphaned (customer_id = NULL) bookings for this customer
+export const claimOrphanedBookings = async (req, res) => {
+  try {
+    const customerId = parseInt(req.params.customerId, 10);
+    if (!isNaN(customerId)) {
+      await pool.query(
+        `UPDATE repair_requests SET customer_id = $1::integer WHERE customer_id IS NULL`,
+        [customerId]
+      );
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // List all bookings that belong to one customer (for cancel / reschedule screens)
 export const listMyRepairRequests = async (req, res) => {
   try {
-    const { customerId } = req.params;
+    const customerId = parseInt(req.params.customerId, 10);
+    if (isNaN(customerId)) return res.json({ requests: [] });
     const { rows } = await pool.query(
-      `SELECT * FROM repair_requests WHERE customer_id = $1 ORDER BY preferred_date DESC, created_at DESC`,
+      `SELECT r.*,
+              u.first_name AS technician_first_name,
+              u.last_name  AS technician_last_name
+       FROM repair_requests r
+       LEFT JOIN users u ON u.id = r.technician_id
+       WHERE r.customer_id = $1::integer
+       ORDER BY r.created_at DESC`,
       [customerId]
     );
     res.json({ requests: rows });
   } catch (err) {
+    console.error('listMyRepairRequests error:', err.message);
     res.status(500).json({ error: err.message });
   }
 };

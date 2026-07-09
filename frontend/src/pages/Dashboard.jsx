@@ -22,23 +22,26 @@ export default function Dashboard() {
     if (parsed.role === 'technician') { navigate('/technician-dashboard'); return; }
     setUser(parsed);
 
-    if (token) {
-      fetch('http://localhost:5000/api/repair-requests/list', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(r => r.json())
-        .then(data => {
-          const reqs = data.requests || [];
-          setRequests(reqs.slice(0, 6));
-          setStats({
-            total: reqs.length,
-            pending: reqs.filter(r => r.status === 'pending').length,
-            accepted: reqs.filter(r => r.status === 'accepted').length,
-            completed: reqs.filter(r => r.status === 'completed').length,
-          });
-        })
+    if (parsed.id) {
+      const base = 'http://localhost:5000/api/repair-requests';
+      fetch(`${base}/claim/${parsed.id}`, { method: 'POST' })
         .catch(() => {})
-        .finally(() => setLoading(false));
+        .finally(() => {
+          fetch(`${base}/my/${parsed.id}`)
+            .then(r => r.json())
+            .then(data => {
+              const reqs = data.requests || [];
+              setRequests(reqs.slice(0, 6));
+              setStats({
+                total: reqs.length,
+                pending: reqs.filter(r => r.status === 'pending').length,
+                accepted: reqs.filter(r => r.status === 'accepted').length,
+                completed: reqs.filter(r => r.status === 'completed').length,
+              });
+            })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+        });
     } else {
       setLoading(false);
     }
@@ -85,7 +88,10 @@ export default function Dashboard() {
         <nav className="cd-nav">
           <button className="cd-nav-item cd-nav-item--active">Dashboard</button>
           <button className="cd-nav-item" onClick={() => navigate('/book-repair')}>Book a Repair</button>
-          <button className="cd-nav-item" onClick={() => navigate('/my-requests')}>My Requests
+          <button className="cd-nav-item" onClick={() => navigate('/technicians')}>Browse Technicians</button>
+          <button className="cd-nav-item" onClick={() => navigate('/reschedule-booking')}>My Bookings</button>
+          <button className="cd-nav-item" onClick={() => navigate('/notifications')}>
+            Notifications
             {stats.pending > 0 && <span className="cd-nav-badge">{stats.pending}</span>}
           </button>
           <button className="cd-nav-item" onClick={() => navigate('/profile')}>Profile</button>
@@ -107,6 +113,7 @@ export default function Dashboard() {
               <span className="cd-search-icon">🔍</span>
               <input className="cd-search-input" placeholder="Search..." />
             </div>
+            <button className="cd-notif-btn" onClick={() => navigate('/notifications')}>🔔</button>
             <div className="cd-avatar">{(user?.firstName?.[0] || 'U').toUpperCase()}</div>
           </div>
         </div>
@@ -153,11 +160,35 @@ export default function Dashboard() {
                 </div>
                 <span className="cd-action-arrow">→</span>
               </button>
-              <button className="cd-action-btn" onClick={() => navigate('/my-requests')}>
-                <div className="cd-action-icon-wrap cd-action-icon-wrap--cyan">📋</div>
+              <button className="cd-action-btn" onClick={() => navigate('/technicians')}>
+                <div className="cd-action-icon-wrap cd-action-icon-wrap--cyan">👥</div>
                 <div>
-                  <div className="cd-action-label">View My Requests</div>
-                  <div className="cd-action-sub">Track your repair status</div>
+                  <div className="cd-action-label">Browse Technicians</div>
+                  <div className="cd-action-sub">Find available technicians near you</div>
+                </div>
+                <span className="cd-action-arrow">→</span>
+              </button>
+              <button className="cd-action-btn" onClick={() => navigate('/reschedule-booking')}>
+                <div className="cd-action-icon-wrap cd-action-icon-wrap--green">📋</div>
+                <div>
+                  <div className="cd-action-label">Reschedule Booking</div>
+                  <div className="cd-action-sub">Change your appointment date</div>
+                </div>
+                <span className="cd-action-arrow">→</span>
+              </button>
+              <button className="cd-action-btn" onClick={() => navigate('/cancel-booking')}>
+                <div className="cd-action-icon-wrap cd-action-icon-wrap--red">✕</div>
+                <div>
+                  <div className="cd-action-label">Cancel Booking</div>
+                  <div className="cd-action-sub">Cancel an existing repair request</div>
+                </div>
+                <span className="cd-action-arrow">→</span>
+              </button>
+              <button className="cd-action-btn" onClick={() => navigate('/notifications')}>
+                <div className="cd-action-icon-wrap cd-action-icon-wrap--purple">🔔</div>
+                <div>
+                  <div className="cd-action-label">Notifications</div>
+                  <div className="cd-action-sub">View updates on your repairs</div>
                 </div>
                 <span className="cd-action-arrow">→</span>
               </button>
@@ -206,7 +237,7 @@ export default function Dashboard() {
               <tr>
                 <th>Device</th>
                 <th>Description</th>
-                <th>Area</th>
+                <th>Technician</th>
                 <th>Preferred Date</th>
                 <th>Status</th>
               </tr>
@@ -218,7 +249,7 @@ export default function Dashboard() {
                 <tr key={r.id}>
                   <td>{r.device_type || '—'}</td>
                   <td className="cd-table-desc">{r.fault_description?.slice(0, 40) || '—'}{r.fault_description?.length > 40 ? '…' : ''}</td>
-                  <td>{r.customer_area || '—'}</td>
+                  <td>{r.technician_first_name ? `${r.technician_first_name} ${r.technician_last_name}` : 'Not assigned'}</td>
                   <td>{fmt(r.preferred_date)}</td>
                   <td><span className={`cd-badge cd-badge--${r.status}`}>{r.status}</span></td>
                 </tr>

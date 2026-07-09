@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './RescheduleBooking.css'
 
 const API = 'http://localhost:5000/api/repair-requests'
+const AVAIL_API = 'http://localhost:5000/api/availability'
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 function mapBooking(r) {
   return {
@@ -11,44 +14,70 @@ function mapBooking(r) {
     issue: r.fault_description,
     date: (r.preferred_date || '').split('T')[0],
     time: r.preferred_time || '—',
-    tech: r.technician_id ? `Technician #${r.technician_id}` : 'Not assigned',
+    techId: r.technician_id,
+    tech: r.technician_first_name
+      ? `${r.technician_first_name} ${r.technician_last_name}`
+      : r.technician_id ? `Technician #${r.technician_id}` : 'Not assigned',
     city: r.customer_area,
     status: r.status ? r.status.charAt(0).toUpperCase() + r.status.slice(1) : 'Pending',
   }
 }
 
-const UNAVAIL_DAYS = [4, 7, 11, 14, 17, 21, 24, 28]
-const TAKEN_SLOTS = { 9: ['9:00 AM'], 10: ['2:00 PM'], 12: ['11:00 AM', '3:00 PM'], 15: ['9:00 AM', '10:00 AM'], 20: ['1:00 PM'] }
-const ALL_SLOTS = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM']
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
-
 export default function RescheduleBooking() {
   const navigate = useNavigate()
   const [step, setStep] = useState('select')
   const [selected, setSelected] = useState(null)
-  const [month, setMonth] = useState(5)
-  const [year, setYear] = useState(2026)
+  const [month, setMonth] = useState(new Date().getMonth())
+  const [year, setYear] = useState(new Date().getFullYear())
   const [selDay, setSelDay] = useState(null)
   const [selTime, setSelTime] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [bookings, setBookings] = useState([])
+  const [fetchingBookings, setFetchingBookings] = useState(true)
+  const [slots, setSlots] = useState([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
 
-  const today = new Date()
   const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const today = new Date()
 
   useEffect(() => {
-    if (!user.id) return
-    fetch(`${API}/my/${user.id}`)
+    console.log('[RescheduleBooking] user from localStorage:', user)
+    if (!user.id) {
+      console.warn('[RescheduleBooking] No user.id found — not logged in?')
+      setFetchingBookings(false)
+      return
+    }
+    setFetchingBookings(true)
+    fetch(`${API}/claim/${user.id}`, { method: 'POST' })
       .then(r => r.json())
-      .then(data => {
-        const list = (data.requests || [])
-          .filter(r => r.status !== 'cancelled')
-          .map(mapBooking)
-        setBookings(list)
+      .then(d => console.log('[RescheduleBooking] claim result:', d))
+      .catch(e => console.error('[RescheduleBooking] claim error:', e))
+      .finally(() => {
+        fetch(`${API}/my/${user.id}`)
+          .then(r => r.json())
+          .then(data => {
+            console.log('[RescheduleBooking] raw API response:', JSON.stringify(data))
+            const list = (data.requests || [])
+              .filter(r => !['cancelled', 'declined', 'completed'].includes(r.status))
+              .map(mapBooking)
+            console.log('[RescheduleBooking] filtered bookings:', list)
+            setBookings(list)
+          })
+          .catch(e => console.error('[RescheduleBooking] fetch error:', e))
+          .finally(() => setFetchingBookings(false))
       })
-      .catch(() => {})
   }, [user.id])
+
+  const fetchSlots = useCallback((techId, date) => {
+    if (!techId || !date) { setSlots([]); return }
+    setLoadingSlots(true)
+    fetch(`${AVAIL_API}/${techId}/slots?date=${date}`)
+      .then(r => r.json())
+      .then(data => setSlots(data.slots || []))
+      .catch(() => setSlots([]))
+      .finally(() => setLoadingSlots(false))
+  }, [])
 
   function handleSelect(booking) {
     setSelected(booking)
@@ -56,6 +85,7 @@ export default function RescheduleBooking() {
     setError('')
     setSelDay(null)
     setSelTime(null)
+    setSlots([])
   }
 
   function handleBack() {
@@ -64,6 +94,7 @@ export default function RescheduleBooking() {
     setError('')
     setSelDay(null)
     setSelTime(null)
+    setSlots([])
   }
 
   function changeMonth(dir) {
@@ -75,12 +106,17 @@ export default function RescheduleBooking() {
     setYear(y)
     setSelDay(null)
     setSelTime(null)
+    setSlots([])
   }
 
   function handleDayClick(d) {
     setSelDay(d)
     setSelTime(null)
     setError('')
+    if (selected?.techId) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+      fetchSlots(selected.techId, dateStr)
+    }
   }
 
   async function handleConfirm() {
@@ -109,199 +145,228 @@ export default function RescheduleBooking() {
   for (let i = 0; i < firstDay; i++) days.push(null)
   for (let d = 1; d <= daysInMonth; d++) days.push(d)
 
-  return (
-    <div className="rb-page">
-      <div className="rb-modal">
-
-        <div className="rb-header">
-          <div className="rb-header-left">
-            <div className="rb-logo">⚡</div>
-            <div>
-              <div className="rb-title">Reschedule Booking</div>
-              <div className="rb-subtitle">Pick a new date and time</div>
+  if (step === 'success' && selected) {
+    const newDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(selDay).padStart(2, '0')}`
+    return (
+      <div className="rb-page">
+        <aside className="rb-sidebar">
+          <div className="rb-brand">⚡ Fixit</div>
+          <div className="rb-sidebar-info">
+            <h2 className="rb-sidebar-heading">Booking rescheduled!</h2>
+            <p className="rb-sidebar-sub">Your technician has been notified of the new slot.</p>
+          </div>
+          <div className="rb-sidebar-steps">
+            <div className="rb-stp rb-stp--done"><div className="rb-stp-num">✓</div><div><div className="rb-stp-label">Select Booking</div></div></div>
+            <div className="rb-stp-line" />
+            <div className="rb-stp rb-stp--done"><div className="rb-stp-num">✓</div><div><div className="rb-stp-label">Pick New Slot</div></div></div>
+          </div>
+        </aside>
+        <main className="rb-main">
+          <div className="rb-success-wrap">
+            <div className="rb-success-icon">✓</div>
+            <h1 className="rb-success-heading">All rescheduled!</h1>
+            <p className="rb-success-msg">Your <strong>{selected.device}</strong> repair has been moved to the new slot.</p>
+            <div className="rb-confirm-box">
+              <div className="rb-confirm-row"><span>Device</span><span>{selected.device}</span></div>
+              <div className="rb-confirm-row"><span>Technician</span><span>{selected.tech}</span></div>
+              <div className="rb-confirm-row"><span>Original slot</span><span className="rb-old-val">{selected.date} · {selected.time}</span></div>
+              <div className="rb-confirm-row"><span>New slot</span><span className="rb-new-val">{newDate} · {selTime}</span></div>
+            </div>
+            <div className="rb-actions">
+              <button className="rb-btn-secondary" onClick={() => navigate('/book-repair')}>Book another</button>
+              <button className="rb-btn" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
             </div>
           </div>
-          {step === 'reschedule' && (
-            <button className="rb-back" onClick={handleBack}>← Back</button>
-          )}
+        </main>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rb-page">
+      <aside className="rb-sidebar">
+        <div className="rb-brand">⚡ Fixit</div>
+        <div className="rb-sidebar-info">
+          <h2 className="rb-sidebar-heading">
+            {step === 'select' ? 'Reschedule a booking.' : `Rescheduling ${selected?.device} repair.`}
+          </h2>
+          <p className="rb-sidebar-sub">
+            {step === 'select'
+              ? 'Pick a booking below then choose a new date and time slot.'
+              : `Currently scheduled for ${selected?.date} at ${selected?.time}.`}
+          </p>
+        </div>
+        <div className="rb-sidebar-steps">
+          <div className={`rb-stp ${step === 'select' ? 'rb-stp--active' : 'rb-stp--done'}`}>
+            <div className="rb-stp-num">{step !== 'select' ? '✓' : '1'}</div>
+            <div><div className="rb-stp-label">Select Booking</div><div className="rb-stp-sub">Choose which repair to move</div></div>
+          </div>
+          <div className="rb-stp-line" />
+          <div className={`rb-stp ${step === 'reschedule' ? 'rb-stp--active' : ''}`}>
+            <div className="rb-stp-num">2</div>
+            <div><div className="rb-stp-label">Pick New Slot</div><div className="rb-stp-sub">Date & time</div></div>
+          </div>
+        </div>
+      </aside>
+
+      <main className="rb-main">
+        <div className="rb-main-top">
+          <div>
+            <h1 className="rb-main-heading">{step === 'select' ? 'Your Bookings' : 'Pick a New Slot'}</h1>
+            <p className="rb-main-sub">
+              {step === 'select'
+                ? 'Select a booking you want to reschedule.'
+                : `Choose a new date and time for your ${selected?.device} repair.`}
+            </p>
+          </div>
+          <button className="rb-close-btn" onClick={() => step === 'reschedule' ? handleBack() : navigate('/dashboard')}>
+            {step === 'reschedule' ? '← Back' : '✕ Cancel'}
+          </button>
         </div>
 
-        <div className="rb-body">
+        {error && <div className="rb-error">{error}</div>}
 
-          {step === 'select' && (
-            <>
-              <p className="rb-instruction">Select a booking to reschedule:</p>
-              {bookings.length === 0 && (
-                <p className="rb-instruction" style={{ opacity: 0.6 }}>No active bookings to reschedule.</p>
-              )}
-              <div className="rb-list">
+        {step === 'select' && (
+          <>
+            {fetchingBookings ? (
+              <div className="rb-loading">Loading your bookings...</div>
+            ) : bookings.length === 0 ? (
+              <div className="rb-empty">
+                <div className="rb-empty-icon">📅</div>
+                <p>No active bookings to reschedule.</p>
+                <p className="rb-empty-sub">Only pending or accepted bookings can be rescheduled.</p>
+                <button className="rb-btn" onClick={() => navigate('/book-repair')} style={{ marginTop: '1.5rem' }}>
+                  Book a Repair
+                </button>
+              </div>
+            ) : (
+              <div className="rb-booking-list">
                 {bookings.map(b => (
-                  <div key={b.id} className="rb-item" onClick={() => handleSelect(b)}>
-                    <div className="rb-item-left">
-                      <div className="rb-device-icon">
-                        {b.device === 'Laptop' ? '💻' : b.device === 'Smartphone' ? '📱' : '📺'}
-                      </div>
-                      <div className="rb-item-info">
-                        <div className="rb-item-name">{b.device} repair</div>
-                        <div className="rb-item-meta">{b.tech} · {b.date} · {b.time}</div>
-                      </div>
+                  <div key={b.id} className="rb-booking-card" onClick={() => handleSelect(b)}>
+                    <div className="rb-booking-icon">
+                      {b.device === 'Laptop' ? '💻' : b.device === 'Smartphone' ? '📱' : b.device === 'TV' ? '📺' : '🔧'}
                     </div>
-                    <span className={`rb-badge ${b.status === 'Pending' ? 'rb-badge-pending' : 'rb-badge-confirmed'}`}>
-                      {b.status}
-                    </span>
+                    <div className="rb-booking-info">
+                      <div className="rb-booking-device">{b.device} Repair</div>
+                      <div className="rb-booking-meta">{b.tech} · {b.date} {b.time !== '—' ? `at ${b.time}` : ''}</div>
+                      {b.issue && <div className="rb-booking-issue">{b.issue.slice(0, 60)}{b.issue.length > 60 ? '…' : ''}</div>}
+                    </div>
+                    <div className="rb-booking-right">
+                      <span className={`rb-badge rb-badge-${b.status.toLowerCase()}`}>{b.status}</span>
+                      <span className="rb-booking-arrow">→</span>
+                    </div>
                   </div>
                 ))}
               </div>
-            </>
-          )}
+            )}
+          </>
+        )}
 
-          {step === 'reschedule' && selected && (
-            <>
-              <div className="rb-current">
-                <div className="rb-current-label">Current slot</div>
-                <div className="rb-current-val">{selected.device} · {selected.date} · {selected.time} · {selected.tech}</div>
+        {step === 'reschedule' && selected && (
+          <div className="rb-reschedule-layout">
+            <div className="rb-calendar-col">
+              <div className="rb-current-slot">
+                <span className="rb-current-label">Current booking</span>
+                <span className="rb-current-val">{selected.device} · {selected.date} · {selected.time}</span>
               </div>
 
-              <div className="rb-cal-head">
+              <div className="rb-cal-nav-row">
                 <button className="rb-nav-btn" onClick={() => changeMonth(-1)}>‹</button>
-                <span className="rb-month">{MONTHS[month]} {year}</span>
+                <span className="rb-month-label">{MONTHS[month]} {year}</span>
                 <button className="rb-nav-btn" onClick={() => changeMonth(1)}>›</button>
               </div>
 
-              <div className="rb-legend">
-                <div className="rb-leg"><div className="rb-leg-dot rb-leg-avail" />Available</div>
-                <div className="rb-leg"><div className="rb-leg-dot rb-leg-taken" />Unavailable</div>
-                <div className="rb-leg"><div className="rb-leg-dot rb-leg-orig" />Current</div>
-                <div className="rb-leg"><div className="rb-leg-dot rb-leg-sel" />Selected</div>
-              </div>
-
-              <div className="rb-day-headers">
-                {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
+              <div className="rb-cal-grid">
+                {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
                   <div key={d} className="rb-day-hd">{d}</div>
                 ))}
-              </div>
-
-              <div className="rb-grid">
                 {days.map((d, i) => {
-                  if (!d) return <div key={`e-${i}`} className="rb-cell rb-empty" />
+                  if (!d) return <div key={`e-${i}`} />
                   const isPast = new Date(year, month, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate())
-                  const isUnavail = UNAVAIL_DAYS.includes(d) || isPast
-                  const origDate = selected.date.split('-')
-                  const isOrig = d === parseInt(origDate[2]) && month === parseInt(origDate[1]) - 1 && year === parseInt(origDate[0])
+                  const origParts = selected.date.split('-')
+                  const isOrig = d === parseInt(origParts[2]) && month === parseInt(origParts[1]) - 1 && year === parseInt(origParts[0])
                   const isSel = selDay === d
 
-                  let cls = 'rb-cell'
-                  if (isSel) cls += ' rb-sel'
-                  else if (isOrig) cls += ' rb-orig'
-                  else if (isUnavail) cls += ' rb-unavail'
-                  else cls += ' rb-avail'
+                  let cls = 'rb-cal-day'
+                  if (isSel) cls += ' rb-cal-day--sel'
+                  else if (isOrig) cls += ' rb-cal-day--orig'
+                  else if (isPast) cls += ' rb-cal-day--past'
+                  else cls += ' rb-cal-day--avail'
 
                   return (
                     <div
                       key={d}
                       className={cls}
-                      onClick={() => !isUnavail && !isOrig && handleDayClick(d)}
-                    >
-                      {d}
-                    </div>
+                      onClick={() => !isPast && !isOrig && handleDayClick(d)}
+                    >{d}</div>
                   )
                 })}
               </div>
 
-              {selDay && (
-                <div className="rb-slots">
-                  <div className="rb-slots-label">Available times — {MONTHS[month]} {selDay}</div>
-                  <div className="rb-slots-grid">
-                    {ALL_SLOTS.map(slot => {
-                      const taken = (TAKEN_SLOTS[selDay] || []).includes(slot)
-                      return (
-                        <button
-                          key={slot}
-                          className={`rb-slot${taken ? ' rb-slot-taken' : ''}${selTime === slot ? ' rb-slot-picked' : ''}`}
-                          disabled={taken}
-                          onClick={() => !taken && setSelTime(slot)}
-                        >
-                          {slot}
-                        </button>
-                      )
-                    })}
-                  </div>
+              <div className="rb-legend">
+                <div className="rb-leg"><div className="rb-leg-dot rb-leg-avail" />Available</div>
+                <div className="rb-leg"><div className="rb-leg-dot rb-leg-orig" />Current slot</div>
+                <div className="rb-leg"><div className="rb-leg-dot rb-leg-sel" />Selected</div>
+                <div className="rb-leg"><div className="rb-leg-dot rb-leg-past" />Unavailable</div>
+              </div>
+            </div>
+
+            <div className="rb-slots-col">
+              {!selDay ? (
+                <div className="rb-slots-placeholder">
+                  <div className="rb-slots-placeholder-icon">👆</div>
+                  <p>Select a date to see available time slots</p>
                 </div>
+              ) : loadingSlots ? (
+                <div className="rb-slots-placeholder">Loading slots...</div>
+              ) : slots.length === 0 ? (
+                <div className="rb-slots-placeholder">
+                  <div className="rb-slots-placeholder-icon">😕</div>
+                  <p>No slots available on this date.</p>
+                  <p style={{ fontSize: '0.8rem', color: '#aaa', marginTop: '0.5rem' }}>
+                    Try another day or the technician hasn't set hours yet.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="rb-slots-heading">
+                    Available on {MONTHS[month]} {selDay}
+                  </div>
+                  <div className="rb-slots-grid">
+                    {slots.map(slot => (
+                      <button
+                        key={slot.time}
+                        className={`rb-slot${!slot.available ? ' rb-slot-taken' : ''}${selTime === slot.time ? ' rb-slot-picked' : ''}`}
+                        disabled={!slot.available}
+                        onClick={() => slot.available && setSelTime(slot.time)}
+                      >
+                        {slot.time}
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
 
               {selDay && selTime && (
                 <div className="rb-confirm-info">
-                  → New slot: <strong>{MONTHS[month]} {selDay}, {year}</strong> at <strong>{selTime}</strong> with <strong>{selected.tech}</strong>
+                  New slot: <strong>{MONTHS[month]} {selDay}, {year}</strong> at <strong>{selTime}</strong>
                 </div>
               )}
 
-              {error && <div className="rb-error">{error}</div>}
-
-              <button
-                className="rb-confirm-btn"
-                onClick={handleConfirm}
-                disabled={!selDay || !selTime || loading}
-              >
-                {loading ? 'Rescheduling...' : 'Confirm reschedule'}
-              </button>
-
-              <button className="rb-keep-btn" onClick={handleBack}>
-                Keep original booking
-              </button>
-            </>
-          )}
-
-          {step === 'success' && selected && (
-            <>
-              <div className="rb-icon-wrap">
-                <div className="rb-icon-circle">✓</div>
+              <div className="rb-reschedule-actions">
+                <button className="rb-btn-secondary" onClick={handleBack}>Keep original</button>
+                <button
+                  className="rb-btn"
+                  onClick={handleConfirm}
+                  disabled={!selDay || !selTime || loading}
+                >
+                  {loading ? 'Rescheduling...' : 'Confirm Reschedule'}
+                </button>
               </div>
-              <h2 className="rb-heading">Booking Rescheduled!</h2>
-              <p className="rb-thanks">
-                Your <strong>{selected.device} repair</strong> has been moved to a new slot.
-              </p>
-              <p className="rb-desc">
-                <strong>{selected.tech}</strong> has been notified of the change.
-                Your original slot on <strong>{selected.date}</strong> is now free for others.
-              </p>
-
-              <div className="rb-details">
-                <div className="rb-detail-row">
-                  <span className="rb-detail-label">Device</span>
-                  <span className="rb-detail-val">{selected.device}</span>
-                </div>
-                <div className="rb-detail-row">
-                  <span className="rb-detail-label">Original slot</span>
-                  <span className="rb-detail-val rb-old-val">{selected.date} · {selected.time}</span>
-                </div>
-                <div className="rb-detail-row">
-                  <span className="rb-detail-label">New slot</span>
-                  <span className="rb-detail-val rb-new-val">{MONTHS[month]} {selDay}, {year} · {selTime}</span>
-                </div>
-                <div className="rb-detail-row rb-detail-last">
-                  <span className="rb-detail-label">Technician</span>
-                  <span className="rb-detail-val">{selected.tech}</span>
-                </div>
-              </div>
-
-              <div className="rb-notifs">
-                <span className="rb-notif">✉ Email sent to you</span>
-                <span className="rb-notif">🔔 Technician notified</span>
-                <span className="rb-notif">📅 Original slot freed</span>
-              </div>
-
-              <button className="rb-done-btn" onClick={() => navigate('/dashboard')}>
-                Done
-              </button>
-
-              <button className="rb-book-btn" onClick={() => navigate('/book')}>
-                Book another repair
-              </button>
-            </>
-          )}
-
-        </div>
-      </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   )
 }
