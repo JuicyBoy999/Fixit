@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReviewForm from '../components/ReviewForm';
 import './RepairHistory.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -42,6 +43,22 @@ export default function RepairHistory() {
   const [repairs, setRepairs] = useState([]);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
+
+  const handleReviewSaved = (repairId, review) => {
+    setRepairs((currentRepairs) => currentRepairs.map((repair) => (
+      repair.id === repairId
+        ? {
+            ...repair,
+            review_id: review.id,
+            review_rating: review.rating,
+            review_body: review.body,
+            review_created_at: review.created_at,
+            review_edited_at: review.edited_at,
+            review_original_body: review.original_body,
+          }
+        : repair
+    )));
+  };
 
   const userName = useMemo(() => {
     const storedUser = localStorage.getItem('user');
@@ -140,20 +157,29 @@ export default function RepairHistory() {
               </thead>
               <tbody>
                 {repairs.map((repair) => (
-                  <tr key={repair.id}>
-                    <td data-label="Date">{formatDate(repair)}</td>
-                    <td data-label="Device">
-                      <strong>{repair.device_name}</strong>
-                      <span>{repair.issue_description || 'No issue details provided'}</span>
-                    </td>
-                    <td data-label="Technician">{repair.technician_name || 'Awaiting assignment'}</td>
-                    <td data-label="Status">
-                      <span className={`rh-status rh-status-${repair.status}`}>
-                        {statusLabels[repair.status] || repair.status}
-                      </span>
-                    </td>
-                    <td data-label="Cost">{formatCost(repair.cost)}</td>
-                  </tr>
+                  <Fragment key={repair.id}>
+                    <tr>
+                      <td data-label="Date">{formatDate(repair)}</td>
+                      <td data-label="Device">
+                        <strong>{repair.device_name}</strong>
+                        <span>{repair.issue_description || 'No issue details provided'}</span>
+                      </td>
+                      <td data-label="Technician">{repair.technician_name || 'Awaiting assignment'}</td>
+                      <td data-label="Status">
+                        <span className={`rh-status rh-status-${repair.status}`}>
+                          {statusLabels[repair.status] || repair.status}
+                        </span>
+                      </td>
+                      <td data-label="Cost">{formatCost(repair.cost)}</td>
+                    </tr>
+                    {repair.status === 'completed' && repair.technician_id && (
+                      <tr className="rh-review-row">
+                        <td colSpan="5">
+                          <ReviewForm repair={repair} onSaved={handleReviewSaved} />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>

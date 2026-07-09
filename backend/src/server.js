@@ -20,6 +20,7 @@ import repairRoutes from './routes/repairRoutes.js';
 import technicianRoutes from './routes/technicianRoutes.js';
 import pricingRoutes from './routes/pricingRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 
 dotenv.config();
 
@@ -78,6 +79,7 @@ app.use("/api/repair", repairRoutes);
 app.use("/api/technicians", technicianRoutes);
 app.use("/api/pricing", pricingRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", {

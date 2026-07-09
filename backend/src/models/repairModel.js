@@ -41,10 +41,28 @@ export const createRepair = async ({
 
 export const getRepairsByUserId = async (userId) => {
   const result = await pool.query(
-    `SELECT id, device_name, issue_description, city, preferred_date, technician_name, status, cost, created_at
-     FROM repairs 
-     WHERE user_id = $1 
-     ORDER BY COALESCE(preferred_date, created_at::date) DESC, created_at DESC`,
+    `SELECT
+       r.id,
+       r.device_name,
+       r.issue_description,
+       r.city,
+       r.preferred_date,
+       r.technician_name,
+       tp.id AS technician_id,
+       r.status,
+       r.cost,
+       r.created_at,
+       rv.id AS review_id,
+       rv.rating AS review_rating,
+       rv.body AS review_body,
+       rv.created_at AS review_created_at,
+       rv.edited_at AS review_edited_at,
+       rv.original_body AS review_original_body
+     FROM repairs r
+     LEFT JOIN technician_profiles tp ON tp.full_name = r.technician_name
+     LEFT JOIN reviews rv ON rv.booking_id = r.id
+     WHERE r.user_id = $1
+     ORDER BY COALESCE(r.preferred_date, r.created_at::date) DESC, r.created_at DESC`,
     [userId]
   );
   return result.rows;

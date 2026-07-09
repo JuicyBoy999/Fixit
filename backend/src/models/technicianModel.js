@@ -12,11 +12,11 @@ export const getTechnicians = async () => {
        tp.location,
        tp.years_experience,
        tp.status,
-       COALESCE(ROUND(AVG(tr.rating)::numeric, 1), 0) AS average_rating,
-       COUNT(tr.id)::int AS review_count,
+       COALESCE(ROUND(AVG(rv.rating)::numeric, 1), 0) AS average_rating,
+       COUNT(DISTINCT rv.id)::int AS review_count,
        COUNT(DISTINCT tc.id)::int AS certification_count
      FROM technician_profiles tp
-     LEFT JOIN technician_reviews tr ON tr.technician_id = tp.id
+     LEFT JOIN reviews rv ON rv.technician_id = tp.id
      LEFT JOIN technician_certifications tc ON tc.technician_id = tp.id
      WHERE tp.status = 'active'
      GROUP BY tp.id
@@ -37,10 +37,10 @@ export const getTechnicianById = async (id) => {
        tp.location,
        tp.years_experience,
        tp.status,
-       COALESCE(ROUND(AVG(tr.rating)::numeric, 1), 0) AS average_rating,
-       COUNT(tr.id)::int AS review_count
+       COALESCE(ROUND(AVG(rv.rating)::numeric, 1), 0) AS average_rating,
+       COUNT(DISTINCT rv.id)::int AS review_count
      FROM technician_profiles tp
-     LEFT JOIN technician_reviews tr ON tr.technician_id = tp.id
+     LEFT JOIN reviews rv ON rv.technician_id = tp.id
      WHERE tp.id = $1 AND tp.status = 'active'
      GROUP BY tp.id`,
     [id]
