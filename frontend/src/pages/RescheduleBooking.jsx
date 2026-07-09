@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import ReviewForm from '../components/ReviewForm'
+import logo from '../assets/image.png'
 import './RescheduleBooking.css'
 
 const API = 'http://localhost:5000/api/repair-requests'
@@ -9,6 +11,7 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 
 function mapBooking(r) {
   return {
+    ...r,
     id: r.id,
     device: r.device_type,
     issue: r.fault_description,
@@ -19,6 +22,7 @@ function mapBooking(r) {
       ? `${r.technician_first_name} ${r.technician_last_name}`
       : r.technician_id ? `Technician #${r.technician_id}` : 'Not assigned',
     city: r.customer_area,
+    rawStatus: r.status,
     status: r.status ? r.status.charAt(0).toUpperCase() + r.status.slice(1) : 'Pending',
   }
 }
@@ -42,32 +46,59 @@ export default function RescheduleBooking() {
   const today = new Date()
 
   useEffect(() => {
-    console.log('[RescheduleBooking] user from localStorage:', user)
-    if (!user.id) {
-      console.warn('[RescheduleBooking] No user.id found — not logged in?')
+    if (!user.id && !localStorage.getItem('token')) {
       setFetchingBookings(false)
       return
     }
     setFetchingBookings(true)
-    fetch(`${API}/claim/${user.id}`, { method: 'POST' })
-      .then(r => r.json())
-      .then(d => console.log('[RescheduleBooking] claim result:', d))
-      .catch(e => console.error('[RescheduleBooking] claim error:', e))
-      .finally(() => {
-        fetch(`${API}/my/${user.id}`)
-          .then(r => r.json())
-          .then(data => {
-            console.log('[RescheduleBooking] raw API response:', JSON.stringify(data))
-            const list = (data.requests || [])
-              .filter(r => !['cancelled', 'declined', 'completed'].includes(r.status))
-              .map(mapBooking)
-            console.log('[RescheduleBooking] filtered bookings:', list)
-            setBookings(list)
-          })
-          .catch(e => console.error('[RescheduleBooking] fetch error:', e))
-          .finally(() => setFetchingBookings(false))
-      })
+    const token = localStorage.getItem('token')
+
+    const doFetch = async () => {
+      // Try authenticated endpoint first
+      if (token) {
+        try {
+          const res = await fetch(`${API}/mine`, { headers: { Authorization: `Bearer ${token}` } })
+          if (res.ok) {
+            const data = await res.json()
+            return data.requests || []
+          }
+        } catch {}
+      }
+      // Fallback: claim + fetch by id
+      if (user.id) {
+        try { await fetch(`${API}/claim/${user.id}`, { method: 'POST' }) } catch {}
+        try {
+          const res = await fetch(`${API}/my/${user.id}`)
+          const data = await res.json()
+          return data.requests || []
+        } catch {}
+      }
+      return []
+    }
+
+    doFetch().then(requests => {
+      const list = requests
+        .filter(r => !['cancelled', 'declined'].includes(r.status))
+        .map(mapBooking)
+      setBookings(list)
+    }).finally(() => setFetchingBookings(false))
   }, [user.id])
+
+  const handleReviewSaved = (bookingId, review) => {
+    setBookings(prev => prev.map(b => (
+      b.id === bookingId
+        ? {
+            ...b,
+            review_id: review.id,
+            review_rating: review.rating,
+            review_body: review.body,
+            review_created_at: review.created_at,
+            review_edited_at: review.edited_at,
+            review_original_body: review.original_body,
+          }
+        : b
+    )))
+  }
 
   const fetchSlots = useCallback((techId, date) => {
     if (!techId || !date) { setSlots([]); return }
@@ -150,7 +181,7 @@ export default function RescheduleBooking() {
     return (
       <div className="rb-page">
         <aside className="rb-sidebar">
-          <div className="rb-brand">⚡ Fixit</div>
+          <div className="rb-brand"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
           <div className="rb-sidebar-info">
             <h2 className="rb-sidebar-heading">Booking rescheduled!</h2>
             <p className="rb-sidebar-sub">Your technician has been notified of the new slot.</p>
@@ -185,7 +216,7 @@ export default function RescheduleBooking() {
   return (
     <div className="rb-page">
       <aside className="rb-sidebar">
-        <div className="rb-brand">⚡ Fixit</div>
+        <div className="rb-brand"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
         <div className="rb-sidebar-info">
           <h2 className="rb-sidebar-heading">
             {step === 'select' ? 'Reschedule a booking.' : `Rescheduling ${selected?.device} repair.`}
@@ -233,8 +264,8 @@ export default function RescheduleBooking() {
             ) : bookings.length === 0 ? (
               <div className="rb-empty">
                 <div className="rb-empty-icon">📅</div>
-                <p>No active bookings to reschedule.</p>
-                <p className="rb-empty-sub">Only pending or accepted bookings can be rescheduled.</p>
+                <p>No bookings yet.</p>
+                <p className="rb-empty-sub">Your repair requests will appear here once you book one.</p>
                 <button className="rb-btn" onClick={() => navigate('/book-repair')} style={{ marginTop: '1.5rem' }}>
                   Book a Repair
                 </button>
@@ -242,19 +273,25 @@ export default function RescheduleBooking() {
             ) : (
               <div className="rb-booking-list">
                 {bookings.map(b => (
-                  <div key={b.id} className="rb-booking-card" onClick={() => handleSelect(b)}>
-                    <div className="rb-booking-icon">
-                      {b.device === 'Laptop' ? '💻' : b.device === 'Smartphone' ? '📱' : b.device === 'TV' ? '📺' : '🔧'}
+                  <div key={b.id} className={`rb-booking-card-wrap ${b.rawStatus === 'completed' ? 'rb-booking-card-wrap--completed' : ''}`}>
+                    <div className="rb-booking-card">
+                      <div className="rb-booking-icon">
+                        {b.device === 'Laptop' ? '💻' : b.device === 'Smartphone' ? '📱' : b.device === 'TV' ? '📺' : '🔧'}
+                      </div>
+                      <div className="rb-booking-info">
+                        <div className="rb-booking-device">{b.device} Repair</div>
+                        <div className="rb-booking-meta">{b.tech} · {b.date} {b.time !== '—' ? `at ${b.time}` : ''}</div>
+                        {b.issue && <div className="rb-booking-issue">{b.issue.slice(0, 60)}{b.issue.length > 60 ? '…' : ''}</div>}
+                      </div>
+                      <div className="rb-booking-right">
+                        <span className={`rb-badge rb-badge-${b.status.toLowerCase()}`}>{b.status}</span>
+                        <Link to={`/chat/${b.id}`} className="rb-chat-btn" title="Chat with technician">💬 Chat</Link>
+                        {b.rawStatus !== 'completed' && (
+                          <button className="rb-reschedule-btn" onClick={() => handleSelect(b)}>Reschedule →</button>
+                        )}
+                      </div>
                     </div>
-                    <div className="rb-booking-info">
-                      <div className="rb-booking-device">{b.device} Repair</div>
-                      <div className="rb-booking-meta">{b.tech} · {b.date} {b.time !== '—' ? `at ${b.time}` : ''}</div>
-                      {b.issue && <div className="rb-booking-issue">{b.issue.slice(0, 60)}{b.issue.length > 60 ? '…' : ''}</div>}
-                    </div>
-                    <div className="rb-booking-right">
-                      <span className={`rb-badge rb-badge-${b.status.toLowerCase()}`}>{b.status}</span>
-                      <span className="rb-booking-arrow">→</span>
-                    </div>
+                    <ReviewForm repair={{ ...b, status: b.rawStatus }} onSaved={handleReviewSaved} />
                   </div>
                 ))}
               </div>
@@ -323,7 +360,7 @@ export default function RescheduleBooking() {
                 <div className="rb-slots-placeholder">
                   <div className="rb-slots-placeholder-icon">😕</div>
                   <p>No slots available on this date.</p>
-                  <p style={{ fontSize: '0.8rem', color: '#aaa', marginTop: '0.5rem' }}>
+                  <p style={{ fontSize: '0.8rem', color: '#4E7182', marginTop: '0.5rem' }}>
                     Try another day or the technician hasn't set hours yet.
                   </p>
                 </div>

@@ -2,10 +2,10 @@
 
 .sa-page {
   min-height: 100vh;
-  background: #fafafa;
+  background: #EAF7FC;
   padding: 2rem 1rem;
   font-family: 'Inter', 'Segoe UI', sans-serif;
-  color: #111;
+  color: #16303D;
 }
 
 .sa-container { max-width: 700px; margin: 0 auto; }
@@ -13,7 +13,7 @@
 .sa-back {
   background: none;
   border: none;
-  color: #888;
+  color: #4E7182;
   font-size: 14px;
   cursor: pointer;
   padding: 0;
@@ -23,21 +23,21 @@
   gap: 6px;
   transition: color 0.15s;
 }
-.sa-back:hover { color: #111; }
+.sa-back:hover { color: #16303D; }
 
-.sa-title { font-size: 28px; font-weight: 700; color: #111; margin-bottom: 6px; }
-.sa-sub   { color: #888; font-size: 14px; margin-bottom: 2rem; }
+.sa-title { font-size: 28px; font-weight: 700; color: #16303D; margin-bottom: 6px; }
+.sa-sub   { color: #4E7182; font-size: 14px; margin-bottom: 2rem; }
 
 .sa-card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: #CFEEF8;
+  border: 1px solid #8FCBE3;
   border-radius: 16px;
   padding: 1.75rem;
   margin-bottom: 1.5rem;
 }
 
-.sa-card-title { font-size: 17px; font-weight: 600; color: #111; margin-bottom: 4px; }
-.sa-card-sub   { font-size: 13px; color: #888; margin-bottom: 1.25rem; }
+.sa-card-title { font-size: 17px; font-weight: 600; color: #16303D; margin-bottom: 4px; }
+.sa-card-sub   { font-size: 13px; color: #4E7182; margin-bottom: 1.25rem; }
 
 .sa-schedule {
   display: flex;
@@ -52,11 +52,11 @@
   gap: 1rem;
   padding: 12px 16px;
   border-radius: 12px;
-  background: #fafafa;
-  border: 1px solid #e5e5e5;
+  background: #EAF7FC;
+  border: 1px solid #8FCBE3;
   transition: border-color 0.15s;
 }
-.sa-day:hover { border-color: #111; }
+.sa-day:hover { border-color: #2E86AB; }
 .sa-day--off  { opacity: 0.5; }
 
 .sa-toggle {
@@ -71,7 +71,7 @@
   appearance: none;
   width: 18px;
   height: 18px;
-  border: 2px solid #e5e5e5;
+  border: 2px solid #8FCBE3;
   border-radius: 4px;
   background: transparent;
   cursor: pointer;
@@ -79,8 +79,8 @@
   transition: background 0.15s, border-color 0.15s;
 }
 .sa-toggle input[type="checkbox"]:checked {
-  background: #111;
-  border-color: #111;
+  background: #2E86AB;
+  border-color: #2E86AB;
 }
 .sa-toggle input[type="checkbox"]:checked::after {
   content: '';
@@ -95,24 +95,24 @@
   transform: rotate(45deg);
 }
 
-.sa-toggle-label { font-size: 14px; font-weight: 500; color: #111; }
+.sa-toggle-label { font-size: 14px; font-weight: 500; color: #16303D; }
 
 .sa-times { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
-.sa-time-group { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #888; }
+.sa-time-group { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4E7182; }
 
 .sa-time-input {
   padding: 7px 10px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
   border-radius: 8px;
   font-size: 13px;
-  color: #111;
-  background: #fff;
+  color: #16303D;
+  background: #CFEEF8;
   transition: border-color 0.15s;
 }
-.sa-time-input:focus { outline: none; border-color: #111; }
+.sa-time-input:focus { outline: none; border-color: #2E86AB; }
 
-.sa-off-label { font-size: 13px; color: #aaa; font-style: italic; }
+.sa-off-label { font-size: 13px; color: #4E7182; font-style: italic; }
 
 .sa-block-form {
   display: flex;
@@ -123,17 +123,17 @@
 
 .sa-input {
   padding: 10px 14px;
-  border: 1.5px solid #e5e5e5;
+  border: 1.5px solid #8FCBE3;
   border-radius: 10px;
   font-size: 14px;
-  color: #111;
-  background: #fff;
+  color: #16303D;
+  background: #CFEEF8;
   flex: 1;
   min-width: 140px;
   transition: border-color 0.15s;
 }
-.sa-input:focus       { outline: none; border-color: #111; }
-.sa-input::placeholder { color: #bbb; }
+.sa-input:focus       { outline: none; border-color: #2E86AB; }
+.sa-input::placeholder { color: #4E7182; }
 
 .sa-blocked-list {
   list-style: none;
@@ -150,13 +150,13 @@
   align-items: center;
   padding: 10px 14px;
   border-radius: 10px;
-  background: #fafafa;
-  border: 1px solid #e5e5e5;
+  background: #EAF7FC;
+  border: 1px solid #8FCBE3;
   font-size: 13px;
-  color: #111;
+  color: #16303D;
 }
-.sa-blocked-item strong { color: #111; }
-.sa-blocked-item em     { color: #888; }
+.sa-blocked-item strong { color: #16303D; }
+.sa-blocked-item em     { color: #4E7182; }
 
 .sa-btn {
   padding: 12px 24px;
@@ -170,19 +170,19 @@
 .sa-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .sa-btn--primary {
-  background: #111;
+  background: #2E86AB;
   color: #fff;
   width: 100%;
 }
-.sa-btn--primary:hover:not(:disabled) { background: #333; }
+.sa-btn--primary:hover:not(:disabled) { background: #123247; }
 
 .sa-btn--secondary {
   background: transparent;
-  color: #111;
-  border: 1.5px solid #e5e5e5;
+  color: #16303D;
+  border: 1.5px solid #8FCBE3;
   white-space: nowrap;
 }
-.sa-btn--secondary:hover:not(:disabled) { border-color: #111; }
+.sa-btn--secondary:hover:not(:disabled) { border-color: #2E86AB; }
 
 .sa-unblock-btn {
   background: transparent;
@@ -207,7 +207,7 @@
   font-size: 14px;
   font-weight: 500;
   z-index: 9999;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 24px rgba(18, 50, 71, 0.12);
 }
-.sa-toast--success { background: #111; color: #fff; }
+.sa-toast--success { background: #2E86AB; color: #fff; }
 .sa-toast--error   { background: #dc2626; color: #fff; }

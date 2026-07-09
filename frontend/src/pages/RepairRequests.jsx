@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import logo from '../assets/image.png';
 import './RepairRequests.css';
 
 const STATUS_COLORS = {
-  pending:  { bg: 'rgba(245,158,11,0.1)',  border: '#f59e0b', color: '#f59e0b', label: '⏳ Pending'  },
-  accepted: { bg: 'rgba(34,197,94,0.1)',   border: '#22c55e', color: '#22c55e', label: '✅ Accepted' },
-  declined: { bg: 'rgba(239,68,68,0.1)',   border: '#ef4444', color: '#ef4444', label: '❌ Declined' },
+  pending:     { bg: 'rgba(245,158,11,0.1)',  border: '#f59e0b', color: '#f59e0b', label: '⏳ Pending'     },
+  accepted:    { bg: 'rgba(34,197,94,0.1)',   border: '#22c55e', color: '#22c55e', label: '✅ Accepted'    },
+  confirmed:   { bg: 'rgba(56,189,248,0.1)',  border: '#38bdf8', color: '#38bdf8', label: '📋 Confirmed'   },
+  in_route:    { bg: 'rgba(37,99,235,0.1)',   border: '#2563eb', color: '#2563eb', label: '🚗 In Route'    },
+  in_progress: { bg: 'rgba(139,92,246,0.1)', border: '#8b5cf6', color: '#8b5cf6', label: '🔧 In Progress' },
+  completed:   { bg: 'rgba(34,197,94,0.1)',   border: '#22c55e', color: '#22c55e', label: '✓ Completed'  },
+  declined:    { bg: 'rgba(239,68,68,0.1)',   border: '#ef4444', color: '#ef4444', label: '❌ Declined'    },
+  cancelled:   { bg: 'rgba(107,114,128,0.1)', border: '#6b7280', color: '#6b7280', label: '🚫 Cancelled'  },
 };
 
 export default function RepairRequests() {
@@ -55,9 +61,10 @@ export default function RepairRequests() {
     setActionLoading(false);
   };
 
-  const pendingCount  = requests.filter(r => r.status === 'pending').length;
-  const acceptedCount = requests.filter(r => r.status === 'accepted').length;
-  const declinedCount = requests.filter(r => r.status === 'declined').length;
+  const pendingCount     = requests.filter(r => r.status === 'pending').length;
+  const acceptedCount    = requests.filter(r => ['accepted', 'confirmed', 'in_progress'].includes(r.status)).length;
+  const completedCount   = requests.filter(r => r.status === 'completed').length;
+  const declinedCount    = requests.filter(r => r.status === 'declined').length;
 
   const fmt = d => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
@@ -67,7 +74,7 @@ export default function RepairRequests() {
       {}
       <div className="rr-topbar">
         <div className="rr-logo">
-          <span className="rr-logo-icon">⚡</span>
+          <span className="rr-logo-icon"><img src={logo} alt="Fixit" className="brand-logo-img" /></span>
           <span className="rr-logo-text">Fixit</span>
           <span className="rr-logo-sep">/ Repair Requests</span>
         </div>
@@ -84,9 +91,10 @@ export default function RepairRequests() {
         {}
         <div className="rr-stats">
           {[
-            { label: 'Pending',  value: pendingCount,  color: '#f59e0b' },
-            { label: 'Accepted', value: acceptedCount, color: '#22c55e' },
-            { label: 'Declined', value: declinedCount, color: '#ef4444' },
+            { label: 'Pending',   value: pendingCount,   color: '#f59e0b' },
+            { label: 'Active',    value: acceptedCount,  color: '#22c55e' },
+            { label: 'Completed', value: completedCount, color: '#38bdf8' },
+            { label: 'Declined',  value: declinedCount,  color: '#ef4444' },
           ].map(s => (
             <div key={s.label} className="rr-stat-card">
               <p className="rr-stat-value" style={{ color: s.color }}>{s.value}</p>
@@ -180,24 +188,89 @@ export default function RepairRequests() {
                 <p className="rr-field-value">🕐 {fmt(selected.created_at)}</p>
               </div>
 
-              {selected.status === 'pending' ? (
+              <div className="rr-status-section">
+                <p className="rr-field-label">STATUS PIPELINE</p>
+                <div className="rr-pipeline">
+                  {['pending','confirmed','in_route','in_progress','completed'].map((s, i, arr) => {
+                    const stages = ['pending','confirmed','in_route','in_progress','completed'];
+                    const idx = stages.indexOf(selected.status);
+                    const done = stages.indexOf(s) < idx;
+                    const active = s === selected.status;
+                    return (
+                      <div key={s} className={`rr-pipe-step ${done ? 'done' : ''} ${active ? 'active' : ''}`}>
+                        <div className="rr-pipe-dot">{done ? '✓' : i + 1}</div>
+                        <span>{STATUS_COLORS[s]?.label.replace(/^[^ ]+ /, '')}</span>
+                        {i < arr.length - 1 && <div className="rr-pipe-line" />}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {['confirmed','in_route','in_progress'].includes(selected.status) && (
+                <div style={{ marginTop: '1rem' }}>
+                  <Link
+                    to={`/chat/${selected.id}`}
+                    className="rr-btn"
+                    style={{ background: '#CFEEF8', color: '#16303D', border: '1px solid #8FCBE3', display: 'block', textAlign: 'center', textDecoration: 'none' }}
+                  >
+                    💬 Open Chat
+                  </Link>
+                </div>
+              )}
+
+              {selected.status === 'pending' && (
                 <div className="rr-actions">
                   <button
                     className="rr-btn rr-btn--decline"
                     onClick={() => handleStatus(selected.id, 'declined')}
                     disabled={actionLoading}
                   >
-                    ❌ Decline
+                    Decline
                   </button>
                   <button
                     className="rr-btn rr-btn--accept"
-                    onClick={() => handleStatus(selected.id, 'accepted')}
+                    onClick={() => handleStatus(selected.id, 'confirmed')}
                     disabled={actionLoading}
                   >
-                    ✅ Accept
+                    Confirm
                   </button>
                 </div>
-              ) : (
+              )}
+              {selected.status === 'confirmed' && (
+                <div className="rr-actions">
+                  <button
+                    className="rr-btn rr-btn--route"
+                    onClick={() => handleStatus(selected.id, 'in_route')}
+                    disabled={actionLoading}
+                  >
+                    🚗 Mark In Route
+                  </button>
+                </div>
+              )}
+              {selected.status === 'in_route' && (
+                <div className="rr-actions">
+                  <button
+                    className="rr-btn rr-btn--accept"
+                    onClick={() => handleStatus(selected.id, 'in_progress')}
+                    disabled={actionLoading}
+                  >
+                    🔧 Mark In Progress
+                  </button>
+                </div>
+              )}
+              {selected.status === 'in_progress' && (
+                <div className="rr-actions">
+                  <button
+                    className="rr-btn rr-btn--accept"
+                    onClick={() => handleStatus(selected.id, 'completed')}
+                    disabled={actionLoading}
+                  >
+                    ✓ Mark Completed
+                  </button>
+                </div>
+              )}
+              {(selected.status === 'completed' || selected.status === 'declined' || selected.status === 'cancelled') && (
                 <div className="rr-status-result" style={{
                   background: STATUS_COLORS[selected.status]?.bg,
                   border: `1px solid ${STATUS_COLORS[selected.status]?.border}`,

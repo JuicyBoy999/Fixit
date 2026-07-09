@@ -7,11 +7,15 @@ import {
   createRepairRequest,
   updateRepairRequestStatus,
   listMyRepairRequests,
+  listMyBookings,
   claimOrphanedBookings,
   getUpcomingReminders,
   cancelRepairRequest,
   rescheduleRepairRequest,
   runAppointmentReminders,
+  getEarnings,
+  getRepairMessages,
+  postRepairMessage,
 } from '../controllers/repairRequestController.js';
 
 const router = express.Router();
@@ -30,6 +34,7 @@ router.get('/debug-all',             async (req, res) => {
   res.json(rows);
 });
 router.get('/list',                  verifyToken, listRepairRequests);
+router.get('/mine',                  verifyToken, listMyBookings);
 router.get('/my/:customerId',        listMyRepairRequests);
 router.post('/claim/:customerId',    claimOrphanedBookings);
 router.get('/reminders/:customerId', getUpcomingReminders);
@@ -39,5 +44,8 @@ router.post('/create',               optionalAuth, createRepairRequest);
 router.patch('/:id/status',          verifyToken, updateRepairRequestStatus);
 router.patch('/:id/cancel',          cancelRepairRequest);
 router.patch('/:id/reschedule',      rescheduleRepairRequest);
+router.get('/earnings/:techId',      verifyToken, getEarnings);
+router.get('/:id/messages',          verifyToken, getRepairMessages);
+router.post('/:id/messages',         verifyToken, postRepairMessage);
 
 export default router;

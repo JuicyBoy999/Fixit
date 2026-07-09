@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import logo from '../assets/image.png'
 import './AppointmentReminder.css'
 
 const API = 'http://localhost:5000/api/repair-requests'
@@ -65,7 +66,7 @@ export default function AppointmentReminder() {
 
         <div className="ar-header">
           <div className="ar-header-left">
-            <div className="ar-logo">⚡</div>
+            <div className="ar-logo"><img src={logo} alt="Fixit" className="brand-logo-img" /></div>
             <div>
               <div className="ar-title">Appointment Reminder</div>
               <div className="ar-subtitle">Upcoming repair appointments</div>

@@ -26,6 +26,16 @@ export const getUserById = async (id) => {
   return result.rows[0];
 };
 
+export const getManageableUsers = async () => {
+  const result = await pool.query(
+    `SELECT id, first_name, last_name, email, phone, city, role, status, created_at
+     FROM users
+     WHERE role <> 'admin'
+     ORDER BY created_at DESC`
+  );
+  return result.rows;
+};
+
 export const updateUser = async (id, firstName, lastName, email, phone, city) => {
   const result = await pool.query(
     "UPDATE users SET first_name=$1, last_name=$2, email=$3, phone=$4, city=$5 WHERE id=$6 RETURNING *",
@@ -45,4 +55,15 @@ export const updatePassword = async (id, password) => {
 
 export const comparePassword = async (password, hashedPassword) => {
   return await bcrypt.compare(password, hashedPassword);
+};
+
+export const updateUserStatus = async (id, status) => {
+  const result = await pool.query(
+    `UPDATE users
+     SET status = $1
+     WHERE id = $2
+     RETURNING id, first_name, last_name, email, phone, city, role, status, created_at`,
+    [status, id]
+  );
+  return result.rows[0];
 };

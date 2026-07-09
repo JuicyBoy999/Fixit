@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import logo from '../assets/image.png'
 import './CancelBooking.css'
 
 const API = 'http://localhost:5000/api/repair-requests'
@@ -94,7 +95,7 @@ export default function CancelBooking() {
 
         <div className="cb-header">
           <div className="cb-header-left">
-            <div className="cb-logo">⚡</div>
+            <div className="cb-logo"><img src={logo} alt="Fixit" className="brand-logo-img" /></div>
             <div>
               <div className="cb-title">Cancel Booking</div>
               <div className="cb-subtitle">Manage your repair appointments</div>

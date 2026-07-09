@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import logo from '../assets/image.png';
 
 const styles = {
   page: {
@@ -9,8 +10,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: '#0f2140',
-    color: '#ffffff',
+    background: '#EAF7FC',
+    color: '#16303D',
     fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     padding: '24px',
     boxSizing: 'border-box',
@@ -18,11 +19,11 @@ const styles = {
   card: {
     width: '100%',
     maxWidth: '450px',
-    background: '#172d4f',
+    background: '#CFEEF8',
     borderRadius: '18px',
     padding: '40px',
     boxSizing: 'border-box',
-    boxShadow: '0 22px 55px rgba(4, 12, 28, 0.22)',
+    boxShadow: '0 22px 55px rgba(18, 50, 71, 0.2)',
   },
   brand: {
     display: 'flex',
@@ -53,14 +54,14 @@ const styles = {
   },
   copy: {
     margin: '0 0 30px',
-    color: '#a7c0df',
+    color: '#4E7182',
     fontSize: '16px',
     lineHeight: 1.5,
   },
   label: {
     display: 'block',
     marginBottom: '10px',
-    color: '#9fb5d1',
+    color: '#4E7182',
     fontSize: '13px',
     fontWeight: 800,
     letterSpacing: '0.08em',
@@ -69,10 +70,10 @@ const styles = {
   input: {
     width: '100%',
     minHeight: '52px',
-    border: '1px solid #34577f',
+    border: '1px solid #8FCBE3',
     borderRadius: '9px',
-    background: '#24456e',
-    color: '#ffffff',
+    background: '#A3D8EC',
+    color: '#16303D',
     padding: '0 16px',
     boxSizing: 'border-box',
     outline: 'none',
@@ -111,7 +112,7 @@ const styles = {
   footer: {
     marginTop: '24px',
     textAlign: 'center',
-    color: '#a7c0df',
+    color: '#4E7182',
     fontSize: '15px',
   },
   link: {
@@ -168,7 +169,9 @@ const ResetPassword = () => {
     <main style={styles.page}>
       <section style={styles.card} aria-labelledby="reset-password-title">
         <div style={styles.brand}>
-          <div style={styles.brandMark}>⚡</div>
+          <div style={styles.brandMark}>
+            <img src={logo} alt="Fixit" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+          </div>
           <div style={styles.brandName}>Fixit</div>
         </div>
 

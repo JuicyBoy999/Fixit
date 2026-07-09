@@ -1,4 +1,11 @@
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/image.png';
+import laptopImg from '../assets/laptop-repair.jpg';
+import phoneImg from '../assets/phone_repair.jpg';
+import tvImg from '../assets/tv.jpg';
+import desktopImg from '../assets/desktop.jpg';
+import consoleImg from '../assets/console_repaiir.jpg';
+import homeAppImg from '../assets/homeapp.jpg';
 import './Home.css';
 
 export default function Home() {
@@ -8,7 +15,7 @@ export default function Home() {
     <div className="hm-page">
 
       <nav className="hm-nav">
-        <div className="hm-nav-logo">⚡ Fixit</div>
+        <div className="hm-nav-logo"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
         <div className="hm-nav-links">
           <a href="#services">Services</a>
           <a href="#how">How it works</a>
@@ -37,45 +44,11 @@ export default function Home() {
             <button className="hm-btn-dark hm-btn-lg" onClick={() => navigate('/signup')}>Book a Repair</button>
             <button className="hm-btn-outline hm-btn-lg" onClick={() => navigate('/login')}>Sign in →</button>
           </div>
-          <div className="hm-hero-meta">
-            <span>+01 800 25923857</span>
-            <span className="hm-meta-sep">|</span>
-            <span>100 Main St, Kathmandu</span>
-          </div>
         </div>
         <div className="hm-hero-right">
           <div className="hm-hero-img-wrap">
             <div className="hm-hero-circle" />
-            <div className="hm-hero-device">🖥️</div>
           </div>
-        </div>
-        <div className="hm-side-nav">
-          <span>Home</span>
-          <span>Prices</span>
-          <span>Products</span>
-          <span>About us</span>
-        </div>
-      </section>
-
-      <section className="hm-stats">
-        <div className="hm-stat">
-          <div className="hm-stat-num">2,400+</div>
-          <div className="hm-stat-label">Repairs completed</div>
-        </div>
-        <div className="hm-stat-divider" />
-        <div className="hm-stat">
-          <div className="hm-stat-num">150+</div>
-          <div className="hm-stat-label">Certified technicians</div>
-        </div>
-        <div className="hm-stat-divider" />
-        <div className="hm-stat">
-          <div className="hm-stat-num">4.9★</div>
-          <div className="hm-stat-label">Average rating</div>
-        </div>
-        <div className="hm-stat-divider" />
-        <div className="hm-stat">
-          <div className="hm-stat-num">90-day</div>
-          <div className="hm-stat-label">Warranty on all repairs</div>
         </div>
       </section>
 
@@ -84,15 +57,15 @@ export default function Home() {
         <h2 className="hm-section-heading">Our Services</h2>
         <div className="hm-services-grid">
           {[
-            { icon: '💻', name: 'Laptop Repair', desc: 'Screen, battery, keyboard, motherboard & more' },
-            { icon: '📱', name: 'Smartphone Repair', desc: 'Cracked screens, water damage, charging ports' },
-            { icon: '📺', name: 'TV Repair', desc: 'LED, OLED, QLED — all brands covered' },
-            { icon: '🖥️', name: 'Desktop Repair', desc: 'Hardware upgrades, virus removal, performance tuning' },
-            { icon: '🎮', name: 'Gaming Console', desc: 'PS5, Xbox, Nintendo — disc & digital issues' },
-            { icon: '🏠', name: 'Home Appliances', desc: 'Washing machines, fridges, microwaves & more' },
+            { icon: laptopImg, name: 'Laptop Repair', desc: 'Screen, battery, keyboard, motherboard & more' },
+            { icon: phoneImg, name: 'Smartphone Repair', desc: 'Cracked screens, water damage, charging ports' },
+            { icon: tvImg, name: 'TV Repair', desc: 'LED, OLED, QLED — all brands covered' },
+            { icon: desktopImg, name: 'Desktop Repair', desc: 'Hardware upgrades, virus removal, performance tuning' },
+            { icon: consoleImg, name: 'Gaming Console', desc: 'PS5, Xbox, Nintendo — disc & digital issues' },
+            { icon: homeAppImg, name: 'Home Appliances', desc: 'Washing machines, fridges, microwaves & more' },
           ].map(s => (
             <div key={s.name} className="hm-service-card">
-              <div className="hm-service-icon">{s.icon}</div>
+              <img className="hm-service-icon" src={s.icon} alt={s.name} />
               <div className="hm-service-name">{s.name}</div>
               <div className="hm-service-desc">{s.desc}</div>
             </div>
@@ -142,7 +115,7 @@ export default function Home() {
       <footer className="hm-footer" id="contact">
         <div className="hm-footer-top">
           <div className="hm-footer-brand">
-            <div className="hm-footer-logo">⚡ Fixit</div>
+            <div className="hm-footer-logo"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
             <p>Nepal's on-demand electronics repair platform. Certified technicians, same-day service.</p>
             <div className="hm-footer-social">
               <span>f</span><span>t</span><span>in</span>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import logo from '../assets/image.png'
 import './BookingConfirmationStatus.css'
 
 export default function BookingConfirmationStatus() {
@@ -44,7 +45,7 @@ export default function BookingConfirmationStatus() {
 
         <div className="bcs-header">
           <div className="bcs-header-left">
-            <div className="bcs-logo">⚡</div>
+            <div className="bcs-logo"><img src={logo} alt="Fixit" className="brand-logo-img" /></div>
             <div>
               <div className="bcs-title">Booking Confirmed</div>
               <div className="bcs-subtitle">Sending your confirmation...</div>

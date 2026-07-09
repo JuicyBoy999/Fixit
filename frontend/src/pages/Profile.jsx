@@ -1,25 +1,18 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import logo from '../assets/image.png'
 import './Profile.css'
-
-const original = {
-  firstName: 'Salaj',
-  lastName: 'Chaudhary',
-  email: 'salaj@example.com',
-  phone: '9840000000',
-  city: 'kathmandu',
-}
 
 export default function Profile() {
   const navigate = useNavigate()
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
   const dashboardPath = storedUser.role === 'technician' ? '/technician-dashboard' : '/dashboard'
 
-  const [firstName, setFirstName] = useState(original.firstName)
-  const [lastName, setLastName] = useState(original.lastName)
-  const [email, setEmail] = useState(original.email)
-  const [phone, setPhone] = useState(original.phone)
-  const [city, setCity] = useState(original.city)
+  const [firstName, setFirstName] = useState(storedUser.firstName || '')
+  const [lastName, setLastName] = useState(storedUser.lastName || '')
+  const [email, setEmail] = useState(storedUser.email || '')
+  const [phone, setPhone] = useState(storedUser.phone || '')
+  const [city, setCity] = useState(storedUser.city || 'kathmandu')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -33,11 +26,11 @@ export default function Profile() {
   }
 
   function handleCancel() {
-    setFirstName(original.firstName)
-    setLastName(original.lastName)
-    setEmail(original.email)
-    setPhone(original.phone)
-    setCity(original.city)
+    setFirstName(storedUser.firstName || '')
+    setLastName(storedUser.lastName || '')
+    setEmail(storedUser.email || '')
+    setPhone(storedUser.phone || '')
+    setCity(storedUser.city || 'kathmandu')
     setNewPassword('')
     setConfirmPassword('')
     setError('')
@@ -48,7 +41,7 @@ export default function Profile() {
     e.preventDefault()
     setError('')
 
-    if (phone.length !== 10) {
+    if (phone.length > 0 && phone.length !== 10) {
       setError('Phone number must be exactly 10 digits.')
       return
     }
@@ -62,23 +55,30 @@ export default function Profile() {
     }
 
     try {
-      const userId = 1
+      const token = localStorage.getItem('token')
+      const userId = storedUser.id
       const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ firstName, lastName, email, phone, city, newPassword }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.message)
+        setError(data.message || 'Failed to save changes.')
         return
       }
 
+      // Update localStorage
+      const updated = { ...storedUser, firstName, lastName, email, phone, city }
+      localStorage.setItem('user', JSON.stringify(updated))
       setSuccess(true)
 
-    } catch (err) {
+    } catch {
       setError('Cannot connect to server. Make sure backend is running.')
     }
   }
@@ -88,7 +88,9 @@ export default function Profile() {
 
       <nav className="pf-nav">
         <div className="pf-nav-logo">
-          <div className="pf-icon-box">⚡</div>
+          <div className="pf-icon-box">
+            <img src={logo} alt="Fixit" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+          </div>
           <span>Fi<b>x</b>it</span>
         </div>
         <button className="pf-back" onClick={() => navigate(dashboardPath)}>← Dashboard</button>
@@ -101,7 +103,7 @@ export default function Profile() {
             <div className="pf-avatar">{initials}</div>
             <p className="pf-name">{firstName} {lastName}</p>
             <p className="pf-email">{email}</p>
-            <span className="pf-role">⚡ Customer</span>
+            <span className="pf-role">⚡ {storedUser.role === 'technician' ? 'Technician' : 'Customer'}</span>
           </aside>
 
           <div className="pf-card">

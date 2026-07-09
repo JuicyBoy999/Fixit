@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/image.png';
 import './ServiceArea.css';
 
 const RADIUS_OPTIONS = ['5km', '10km', '15km', '25km', '50km', '100km'];
@@ -60,7 +61,7 @@ export default function ServiceArea() {
     <div className="sa-page">
       <div className="sa-topbar">
         <div className="sa-logo">
-          <span className="sa-logo-icon">⚡</span>
+          <span className="sa-logo-icon"><img src={logo} alt="Fixit" className="brand-logo-img" /></span>
           <span className="sa-logo-text">Fixit</span>
           <span className="sa-logo-sep">/ Service Area</span>
         </div>

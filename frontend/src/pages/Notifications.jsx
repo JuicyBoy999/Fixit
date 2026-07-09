@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import logo from '../assets/image.png'
 import './Notifications.css'
 
 const API = 'http://localhost:5000/api/notifications'
@@ -76,7 +77,7 @@ export default function Notifications() {
   return (
     <div className="nf-page">
       <aside className="nf-sidebar">
-        <div className="nf-brand">⚡ Fixit</div>
+        <div className="nf-brand"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
         <div className="nf-sidebar-info">
           <h2 className="nf-sidebar-heading">Notifications</h2>
           <p className="nf-sidebar-sub">Stay up to date with your repair bookings and technician updates.</p>

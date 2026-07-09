@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './BookRepair.css'
 import SlotPicker from '../components/availability/SlotPicker'
+import logo from '../assets/image.png'
+
+const API = 'http://localhost:5000'
 
 export default function BookRepair() {
   const navigate = useNavigate()
@@ -11,24 +14,50 @@ export default function BookRepair() {
   const [city, setCity] = useState('')
   const [date, setDate] = useState('')
   const [selectedSlot, setSelectedSlot] = useState('')
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
-  const [address, setAddress] = useState('')
-  const [error, setError] = useState('')
-  const [done, setDone] = useState(false)
   const [technicians, setTechnicians] = useState([])
   const [technicianId, setTechnicianId] = useState('')
+  const [name, setName] = useState(() => {
+    const u = JSON.parse(localStorage.getItem('user') || '{}')
+    return `${u.firstName || ''} ${u.lastName || ''}`.trim()
+  })
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState(() => {
+    const u = JSON.parse(localStorage.getItem('user') || '{}')
+    return u.email || ''
+  })
+  const [address, setAddress] = useState('')
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [error, setError] = useState('')
+  const [done, setDone] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [estimate, setEstimate] = useState(null)
+  const [loadingEstimate, setLoadingEstimate] = useState(false)
+
+  function handlePhoto(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      setError('Only JPG and PNG files are supported.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Photo must be under 5 MB.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = ev => setPhotoPreview(ev.target.result)
+    reader.readAsDataURL(file)
+  }
 
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
 
   useEffect(() => {
-    if (storedUser.firstName) setName(`${storedUser.firstName} ${storedUser.lastName || ''}`.trim())
-    if (storedUser.email) setEmail(storedUser.email)
-  }, [])
+    const token = localStorage.getItem('token')
+    if (!token) navigate('/login')
+  }, [navigate])
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/availability/technicians')
+    fetch(`${API}/api/availability/technicians`)
       .then(r => r.json())
       .then(data => { if (data.technicians) setTechnicians(data.technicians) })
       .catch(() => {})
@@ -50,16 +79,35 @@ export default function BookRepair() {
     setStep(2)
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+  async function handleStep2() {
     if (!name.trim()) { setError('Please enter your full name.'); return }
     if (phone.length !== 10) { setError('Phone number must be exactly 10 digits.'); return }
     if (!email.trim()) { setError('Please enter your email address.'); return }
     setError('')
+    setLoadingEstimate(true)
+    setStep(3)
 
     try {
+      const res = await fetch(`${API}/api/pricing/estimate?deviceType=${encodeURIComponent(deviceType)}`)
+      const data = await res.json()
+      if (res.ok) {
+        setEstimate(data.estimate)
+      } else {
+        setError(data.message || 'Failed to calculate estimate')
+      }
+    } catch {
+      setError('Connection error while fetching estimate')
+    } finally {
+      setLoadingEstimate(false)
+    }
+  }
+
+  async function handleSubmit() {
+    setError('')
+    setSaving(true)
+    try {
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:5000/api/repair-requests/create', {
+      const res = await fetch(`${API}/api/repair-requests/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,14 +121,20 @@ export default function BookRepair() {
           preferred_date:    date,
           preferred_time:    selectedSlot,
           customer_area:     city,
-          photo_url:         null,
+          photo_url:         photoPreview || null,
         }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error || 'Booking failed. Try again.'); return }
+      if (!res.ok) {
+        setError(data.error || 'Booking failed. Try again.')
+        if (res.status === 401) navigate('/login')
+        return
+      }
       setDone(true)
     } catch {
-      setError('Network error. Please try again.')
+      setError('Cannot connect to server. Make sure backend is running.')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -91,39 +145,32 @@ export default function BookRepair() {
     return (
       <div className="br-page">
         <aside className="br-sidebar">
-          <div className="br-brand">⚡ Fixit</div>
+          <div className="br-brand"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
           <div className="br-sidebar-info">
             <h2 className="br-sidebar-heading">Booking confirmed!</h2>
             <p className="br-sidebar-sub">Your technician will be in touch shortly to confirm the appointment.</p>
           </div>
           <div className="br-sidebar-steps">
-            <div className="br-stp br-stp--done">
-              <div className="br-stp-num">✓</div>
-              <div>
-                <div className="br-stp-label">Repair Details</div>
-                <div className="br-stp-sub">{deviceType}</div>
+            {['Repair Details', 'Contact Info', 'Estimate & Confirm'].map((label, i) => (
+              <div key={i}>
+                {i > 0 && <div className="br-stp-line" />}
+                <div className="br-stp br-stp--done">
+                  <div className="br-stp-num">✓</div>
+                  <div><div className="br-stp-label">{label}</div></div>
+                </div>
               </div>
-            </div>
-            <div className="br-stp-line" />
-            <div className="br-stp br-stp--done">
-              <div className="br-stp-num">✓</div>
-              <div>
-                <div className="br-stp-label">Contact Info</div>
-                <div className="br-stp-sub">{name}</div>
-              </div>
-            </div>
+            ))}
           </div>
         </aside>
-
         <main className="br-main">
           <div className="br-success-wrap">
             <div className="br-success-icon">✓</div>
-            <h1 className="br-success-heading">You're all set!</h1>
+            <h1 className="br-success-heading">You are all set!</h1>
             <p className="br-success-msg">Your repair has been booked. A certified technician will contact you shortly.</p>
             <div className="br-confirm-box">
               <div className="br-confirm-row"><span>Device</span><span>{deviceType}</span></div>
               <div className="br-confirm-row"><span>City</span><span>{city}</span></div>
-              <div className="br-confirm-row"><span>Technician</span><span>{selectedTech ? `${selectedTech.first_name} ${selectedTech.last_name}` : '—'}</span></div>
+              <div className="br-confirm-row"><span>Technician</span><span>{selectedTech ? `${selectedTech.first_name} ${selectedTech.last_name}` : '-'}</span></div>
               <div className="br-confirm-row"><span>Date</span><span>{date}</span></div>
               <div className="br-confirm-row"><span>Time</span><span>{selectedSlot}</span></div>
               <div className="br-confirm-row"><span>Name</span><span>{name}</span></div>
@@ -139,7 +186,7 @@ export default function BookRepair() {
   return (
     <div className="br-page">
       <aside className="br-sidebar">
-        <div className="br-brand">⚡ Fixit</div>
+        <div className="br-brand"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
         <div className="br-sidebar-info">
           <h2 className="br-sidebar-heading">Book a repair in minutes.</h2>
           <p className="br-sidebar-sub">Certified technicians. Same-day service. 90-day warranty on every repair.</p>
@@ -149,32 +196,48 @@ export default function BookRepair() {
             <div className="br-stp-num">{step > 1 ? '✓' : '1'}</div>
             <div>
               <div className="br-stp-label">Repair Details</div>
-              <div className="br-stp-sub">Device, issue & schedule</div>
+              <div className="br-stp-sub">Device, issue and schedule</div>
             </div>
           </div>
           <div className="br-stp-line" />
-          <div className={`br-stp ${step >= 2 ? 'br-stp--active' : ''}`}>
-            <div className="br-stp-num">2</div>
+          <div className={`br-stp ${step >= 2 ? 'br-stp--active' : ''} ${step > 2 ? 'br-stp--done' : ''}`}>
+            <div className="br-stp-num">{step > 2 ? '✓' : '2'}</div>
             <div>
               <div className="br-stp-label">Contact Info</div>
-              <div className="br-stp-sub">Your name & address</div>
+              <div className="br-stp-sub">Your name and address</div>
+            </div>
+          </div>
+          <div className="br-stp-line" />
+          <div className={`br-stp ${step >= 3 ? 'br-stp--active' : ''}`}>
+            <div className="br-stp-num">3</div>
+            <div>
+              <div className="br-stp-label">Estimate and Confirm</div>
+              <div className="br-stp-sub">Review cost and confirm</div>
             </div>
           </div>
         </div>
         <div className="br-sidebar-trust">
-          <div className="br-trust-item"><span className="br-trust-icon">🛡</span><span>90-day warranty</span></div>
-          <div className="br-trust-item"><span className="br-trust-icon">⚡</span><span>Same-day service</span></div>
-          <div className="br-trust-item"><span className="br-trust-icon">✓</span><span>Certified techs</span></div>
+          <div className="br-trust-item"><span className="br-trust-icon">shield</span><span>90-day warranty</span></div>
+          <div className="br-trust-item"><span className="br-trust-icon">bolt</span><span>Same-day service</span></div>
+          <div className="br-trust-item"><span className="br-trust-icon">check</span><span>Certified techs</span></div>
         </div>
       </aside>
 
       <main className="br-main">
         <div className="br-main-top">
           <div>
-            <h1 className="br-main-heading">{step === 1 ? 'Repair Details' : 'Contact Info'}</h1>
-            <p className="br-main-sub">{step === 1 ? 'Tell us about your device and schedule a slot.' : 'Where should we send the technician?'}</p>
+            <h1 className="br-main-heading">
+              {step === 1 ? 'Repair Details' : step === 2 ? 'Contact Info' : 'Estimate and Confirm'}
+            </h1>
+            <p className="br-main-sub">
+              {step === 1
+                ? 'Tell us about your device and schedule a slot.'
+                : step === 2
+                ? 'Where should we send the technician?'
+                : 'Review your upfront cost estimate before confirming.'}
+            </p>
           </div>
-          <button className="br-close-btn" onClick={() => navigate('/dashboard')}>✕ Cancel</button>
+          <button className="br-close-btn" onClick={() => navigate('/dashboard')}>X Cancel</button>
         </div>
 
         {error && <div className="br-error">{error}</div>}
@@ -217,7 +280,7 @@ export default function BookRepair() {
               <label className="br-label">Describe the Issue</label>
               <textarea
                 className="br-input br-textarea"
-                placeholder="Eg. Screen is cracked, won't turn on, battery drains fast..."
+                placeholder="Eg. Screen is cracked, wont turn on, battery drains fast..."
                 value={issue}
                 onChange={e => setIssue(e.target.value)}
                 rows={4}
@@ -230,7 +293,7 @@ export default function BookRepair() {
                 <select className="br-input" value={technicianId} onChange={e => { setTechnicianId(e.target.value); setSelectedSlot('') }}>
                   <option value="" disabled>Select a technician...</option>
                   {technicians.map(t => (
-                    <option key={t.id} value={t.id}>{t.first_name} {t.last_name} — {t.city}</option>
+                    <option key={t.id} value={t.id}>{t.first_name} {t.last_name} - {t.city}</option>
                   ))}
                 </select>
               </div>
@@ -247,6 +310,25 @@ export default function BookRepair() {
               </div>
             </div>
 
+            <div className="br-field">
+              <label className="br-label">Photo of Device <span className="br-optional">(optional — JPG/PNG, max 5 MB)</span></label>
+              <label className="br-upload-label">
+                {photoPreview ? (
+                  <div className="br-photo-preview">
+                    <img src={photoPreview} alt="Device preview" className="br-photo-img" />
+                    <span className="br-photo-change">Click to change</span>
+                  </div>
+                ) : (
+                  <div className="br-upload-box">
+                    <span className="br-upload-icon">📷</span>
+                    <span>Click to upload a photo</span>
+                    <small>Helps the technician diagnose in advance</small>
+                  </div>
+                )}
+                <input type="file" accept="image/jpeg,image/png" onChange={handlePhoto} style={{ display: 'none' }} />
+              </label>
+            </div>
+
             {date && technicianId && (
               <div className="br-field">
                 <label className="br-label">Available Time Slots</label>
@@ -257,20 +339,20 @@ export default function BookRepair() {
                   onSelect={setSelectedSlot}
                 />
                 {selectedSlot && (
-                  <small className="br-hint-ok">✓ Selected: {selectedSlot}</small>
+                  <small className="br-hint-ok">Selected: {selectedSlot}</small>
                 )}
               </div>
             )}
 
             <div className="br-actions">
               <button className="br-btn-secondary" onClick={() => navigate('/dashboard')}>Cancel</button>
-              <button className="br-btn" onClick={handleStep1}>Continue →</button>
+              <button className="br-btn" onClick={handleStep1}>Continue</button>
             </div>
           </div>
         )}
 
         {step === 2 && (
-          <form className="br-form" onSubmit={handleSubmit}>
+          <div className="br-form">
             <div className="br-form-grid">
               <div className="br-field">
                 <label className="br-label">Full Name</label>
@@ -326,7 +408,7 @@ export default function BookRepair() {
               <div className="br-summary-title">Booking Summary</div>
               <div className="br-summary-grid">
                 <span className="br-summary-key">Device</span><span>{deviceType}</span>
-                <span className="br-summary-key">Technician</span><span>{selectedTech ? `${selectedTech.first_name} ${selectedTech.last_name}` : '—'}</span>
+                <span className="br-summary-key">Technician</span><span>{selectedTech ? `${selectedTech.first_name} ${selectedTech.last_name}` : '-'}</span>
                 <span className="br-summary-key">Date</span><span>{date}</span>
                 <span className="br-summary-key">Time</span><span>{selectedSlot}</span>
                 <span className="br-summary-key">City</span><span>{city}</span>
@@ -334,10 +416,64 @@ export default function BookRepair() {
             </div>
 
             <div className="br-actions">
-              <button type="button" className="br-btn-secondary" onClick={() => { setStep(1); setError('') }}>← Back</button>
-              <button type="submit" className="br-btn">Confirm Booking</button>
+              <button className="br-btn-secondary" onClick={() => { setStep(1); setError('') }}>Back</button>
+              <button className="br-btn" onClick={handleStep2}>View Estimate</button>
             </div>
-          </form>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="br-form">
+            <div className="br-summary">
+              <div className="br-summary-title">Booking Summary</div>
+              <div className="br-summary-grid">
+                <span className="br-summary-key">Device</span><span>{deviceType}</span>
+                <span className="br-summary-key">Technician</span><span>{selectedTech ? `${selectedTech.first_name} ${selectedTech.last_name}` : '-'}</span>
+                <span className="br-summary-key">Date</span><span>{date}</span>
+                <span className="br-summary-key">Time</span><span>{selectedSlot}</span>
+                <span className="br-summary-key">City</span><span>{city}</span>
+              </div>
+            </div>
+
+            <div className="br-estimate-box">
+              <h3 className="br-estimate-title">Cost Estimate</h3>
+              {loadingEstimate ? (
+                <p className="br-estimate-loading">Calculating your estimate...</p>
+              ) : estimate ? (
+                <>
+                  <div className="br-estimate-list">
+                    {estimate.items.map((item, idx) => (
+                      <div key={idx} className="br-estimate-row">
+                        <span className="br-item-label">{item.label}</span>
+                        <span className="br-item-amount">
+                          {item.type === 'variable'
+                            ? `NPR ${item.amount}`
+                            : `NPR ${Number(item.amount).toLocaleString()}`}
+                          {item.type === 'variable' && ' *'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="br-estimate-total">
+                    <span>Estimated Total (excl. parts)</span>
+                    <span>NPR {Number(estimate.subtotal).toLocaleString()}</span>
+                  </div>
+                  <p className="br-estimate-note">
+                    * Parts marked with * are estimates. Final price depends on specific parts required.
+                  </p>
+                </>
+              ) : (
+                <p className="br-estimate-unavail">Estimate unavailable - you can still proceed with the booking.</p>
+              )}
+            </div>
+
+            <div className="br-actions">
+              <button className="br-btn-secondary" onClick={() => { setStep(2); setError('') }}>Back</button>
+              <button className="br-btn" onClick={handleSubmit} disabled={saving || loadingEstimate}>
+                {saving ? 'Processing...' : 'Confirm Booking'}
+              </button>
+            </div>
+          </div>
         )}
       </main>
     </div>

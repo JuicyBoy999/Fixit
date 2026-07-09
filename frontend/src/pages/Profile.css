@@ -1,15 +1,15 @@
 .pf-page {
   min-height: 100vh;
-  background: #fafafa;
+  background: #EAF7FC;
   font-family: 'Inter', 'Segoe UI', sans-serif;
-  color: #111;
+  color: #16303D;
   display: flex;
   flex-direction: column;
 }
 
 .pf-nav {
-  background: #fff;
-  border-bottom: 1px solid #e5e5e5;
+  background: #CFEEF8;
+  border-bottom: 1px solid #8FCBE3;
   height: 56px;
   padding: 0 2rem;
   display: flex;
@@ -22,7 +22,7 @@
   align-items: center;
   gap: 10px;
   font-size: 18px;
-  color: #111;
+  color: #16303D;
   font-weight: 500;
 }
 
@@ -31,7 +31,7 @@
 .pf-icon-box {
   width: 34px;
   height: 34px;
-  background: #111;
+  background: #2E86AB;
   border-radius: 7px;
   display: flex;
   align-items: center;
@@ -40,8 +40,8 @@
   color: #fff;
 }
 
-.pf-back { font-size: 13px; color: #888; text-decoration: none; cursor: pointer; background: none; border: none; }
-.pf-back:hover { color: #111; }
+.pf-back { font-size: 13px; color: #4E7182; text-decoration: none; cursor: pointer; background: none; border: none; }
+.pf-back:hover { color: #16303D; }
 
 .pf-main {
   flex: 1;
@@ -60,8 +60,8 @@
 }
 
 .pf-sidebar {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: #CFEEF8;
+  border: 1px solid #8FCBE3;
   border-radius: 14px;
   padding: 1.75rem 1.25rem;
   text-align: center;
@@ -71,7 +71,7 @@
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  background: #111;
+  background: #2E86AB;
   color: #fff;
   font-size: 22px;
   font-weight: 700;
@@ -81,30 +81,30 @@
   margin: 0 auto 12px;
 }
 
-.pf-name  { font-size: 15px; font-weight: 600; color: #111; margin: 0 0 4px; }
-.pf-email { font-size: 12px; color: #888; margin: 0 0 12px; word-break: break-all; }
+.pf-name  { font-size: 15px; font-weight: 600; color: #16303D; margin: 0 0 4px; }
+.pf-email { font-size: 12px; color: #4E7182; margin: 0 0 12px; word-break: break-all; }
 
 .pf-role {
   display: inline-block;
-  background: #f5f5f5;
-  color: #111;
+  background: #A3D8EC;
+  color: #16303D;
   font-size: 11px;
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 20px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
 }
 
 .pf-card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: #CFEEF8;
+  border: 1px solid #8FCBE3;
   border-radius: 14px;
   padding: 1.75rem;
 }
 
-.pf-card h2 { font-size: 20px; font-weight: 700; color: #111; margin: 0 0 4px; }
+.pf-card h2 { font-size: 20px; font-weight: 700; color: #16303D; margin: 0 0 4px; }
 
-.pf-sub { font-size: 14px; color: #888; margin: 0 0 1.25rem; }
+.pf-sub { font-size: 14px; color: #4E7182; margin: 0 0 1.25rem; }
 
 .pf-error {
   background: #fff5f5;
@@ -129,47 +129,47 @@
 .pf-section {
   font-size: 11px;
   font-weight: 600;
-  color: #888;
+  color: #4E7182;
   margin: 0 0 12px;
   text-transform: uppercase;
   letter-spacing: .5px;
 }
 
-.pf-note { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 12px; color: #aaa; }
+.pf-note { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 12px; color: #4E7182; }
 
-.pf-line { border: none; border-top: 1px solid #e5e5e5; margin: 18px 0; }
+.pf-line { border: none; border-top: 1px solid #8FCBE3; margin: 18px 0; }
 
 .pf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .pf-field { display: flex; flex-direction: column; margin-bottom: 13px; }
 
-.pf-field label { font-size: 12px; font-weight: 500; color: #888; margin-bottom: 5px; }
+.pf-field label { font-size: 12px; font-weight: 500; color: #4E7182; margin-bottom: 5px; }
 
 .pf-field input,
 .pf-field select {
   height: 40px;
-  background: #fafafa;
-  border: 1.5px solid #e5e5e5;
+  background: #EAF7FC;
+  border: 1.5px solid #8FCBE3;
   border-radius: 8px;
   padding: 0 12px;
-  color: #111;
+  color: #16303D;
   font-size: 14px;
   outline: none;
   font-family: inherit;
   transition: border-color .15s;
 }
 
-.pf-field input::placeholder { color: #bbb; }
+.pf-field input::placeholder { color: #4E7182; }
 
 .pf-field input:focus,
-.pf-field select:focus { border-color: #111; }
+.pf-field select:focus { border-color: #2E86AB; }
 
 .pf-field select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234E7182' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
-  background-color: #fafafa;
+  background-color: #EAF7FC;
   padding-right: 30px;
   cursor: pointer;
 }
@@ -180,20 +180,20 @@
   height: 38px;
   padding: 0 18px;
   background: transparent;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
   border-radius: 8px;
-  color: #888;
+  color: #4E7182;
   font-size: 14px;
   cursor: pointer;
   font-family: inherit;
   transition: border-color .15s, color .15s;
 }
-.pf-btn-cancel:hover { border-color: #111; color: #111; }
+.pf-btn-cancel:hover { border-color: #2E86AB; color: #16303D; }
 
 .pf-btn-save {
   height: 38px;
   padding: 0 22px;
-  background: #111;
+  background: #2E86AB;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -203,9 +203,9 @@
   font-family: inherit;
   transition: background .15s;
 }
-.pf-btn-save:hover { background: #333; }
+.pf-btn-save:hover { background: #123247; }
 
-.pf-hint { display: block; font-size: 11px; color: #888; margin-top: 4px; }
+.pf-hint { display: block; font-size: 11px; color: #4E7182; margin-top: 4px; }
 
 @media (max-width: 768px) {
   .pf-wrapper { grid-template-columns: 1fr; }

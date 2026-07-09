@@ -1,4 +1,5 @@
 import { createUser, getUserByEmail, updateUser, updatePassword, comparePassword } from '../models/userModel.js';
+import { createTechnicianProfileForUser } from '../models/technicianModel.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
@@ -28,6 +29,14 @@ export const addUser = async (req, res) => {
 
     const validRole = role === 'technician' ? 'technician' : 'user';
     const user = await createUser(firstName, lastName, email, phone, city, password, validRole);
+
+    if (validRole === 'technician') {
+      try {
+        await createTechnicianProfileForUser({ id: user.id, firstName: user.first_name, lastName: user.last_name, city: user.city });
+      } catch (profileErr) {
+        console.error('Failed to auto-create technician profile:', profileErr.message);
+      }
+    }
 
     return res.status(201).json({
       message: "Account created successfully",
@@ -60,6 +69,10 @@ export const loginUser = async (req, res) => {
     const user = await getUserByEmail(email);
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    if (user.status === 'suspended' || user.status === 'deactivated') {
+      return res.status(403).json({ message: "Your account has been suspended. Please contact FixIt support for details." });
     }
 
     const isMatch = await comparePassword(password, user.password);

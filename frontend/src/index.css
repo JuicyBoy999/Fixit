@@ -7,8 +7,19 @@
 body {
   font-family: 'Segoe UI', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  background: #EAF7FC;
+  color: #16303D;
 }
 
 #root {
   min-height: 100vh;
+}
+
+.brand-logo-img {
+  height: 1.5em;
+  width: 1.5em;
+  object-fit: contain;
+  vertical-align: middle;
+  border-radius: 6px;
+  flex-shrink: 0;
 }

@@ -1,6 +1,6 @@
 .bcs-page {
   min-height: 100vh;
-  background: #fafafa;
+  background: #EAF7FC;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,13 +13,13 @@
   max-width: 480px;
   border-radius: 16px;
   overflow: hidden;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  background: #CFEEF8;
+  border: 1px solid #8FCBE3;
+  box-shadow: 0 4px 24px rgba(18,50,71,0.12);
 }
 
 .bcs-header {
-  background: #111;
+  background: #2E86AB;
   padding: 18px 20px;
   display: flex;
   align-items: center;
@@ -42,7 +42,7 @@
 .bcs-title    { font-size: 20px; font-weight: 700; color: #fff; }
 .bcs-subtitle { font-size: 13px; color: rgba(255,255,255,.65); margin-top: 2px; }
 
-.bcs-body { padding: 20px; background: #fff; }
+.bcs-body { padding: 20px; background: #CFEEF8; }
 
 .bcs-timer-badge {
   display: flex;
@@ -73,19 +73,19 @@
   flex: 1;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
   background: transparent;
   font-size: 13px;
-  color: #888;
+  color: #4E7182;
   cursor: pointer;
   font-family: inherit;
   transition: all .15s;
 }
-.bcs-tab.on { background: #f5f5f5; border-color: #111; color: #111; font-weight: 600; }
+.bcs-tab.on { background: #EAF7FC; border-color: #2E86AB; color: #16303D; font-weight: 600; }
 
 .bcs-channel-card {
-  background: #fafafa;
-  border: 1px solid #e5e5e5;
+  background: #EAF7FC;
+  border: 1px solid #8FCBE3;
   border-radius: 14px;
   padding: 14px;
   margin-bottom: 14px;
@@ -113,22 +113,22 @@
   to   { transform: rotate(360deg); }
 }
 
-.bcs-email-preview { background: #fff; border-radius: 10px; padding: 14px; border: 1px solid #e5e5e5; }
+.bcs-email-preview { background: #CFEEF8; border-radius: 10px; padding: 14px; border: 1px solid #8FCBE3; }
 
-.bcs-email-meta    { font-size: 11px; color: #888; margin: 0 0 3px; }
-.bcs-email-meta strong { color: #111; }
+.bcs-email-meta    { font-size: 11px; color: #4E7182; margin: 0 0 3px; }
+.bcs-email-meta strong { color: #16303D; }
 
-.bcs-email-subject { font-size: 13px; font-weight: 600; color: #111; margin-top: 8px; }
+.bcs-email-subject { font-size: 13px; font-weight: 600; color: #16303D; margin-top: 8px; }
 
-.bcs-divider { height: 1px; background: #e5e5e5; margin: 10px 0; }
+.bcs-divider { height: 1px; background: #8FCBE3; margin: 10px 0; }
 
-.bcs-email-greeting { font-size: 13px; color: #111; margin: 0 0 6px; }
-.bcs-email-text     { font-size: 12px; color: #888; margin: 0 0 10px; line-height: 1.5; }
+.bcs-email-greeting { font-size: 13px; color: #16303D; margin: 0 0 6px; }
+.bcs-email-text     { font-size: 12px; color: #4E7182; margin: 0 0 10px; line-height: 1.5; }
 
 .bcs-sms-phone { display: flex; flex-direction: column; align-items: flex-start; }
 
 .bcs-sms-bubble {
-  background: #111;
+  background: #2E86AB;
   color: #fff;
   border-radius: 14px;
   border-bottom-left-radius: 4px;
@@ -138,13 +138,13 @@
   max-width: 100%;
 }
 
-.bcs-sms-to { font-size: 11px; color: #888; margin-top: 6px; }
+.bcs-sms-to { font-size: 11px; color: #4E7182; margin-top: 6px; }
 
 .bcs-details {
-  background: #fafafa;
+  background: #EAF7FC;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
 }
 
 .bcs-detail-row {
@@ -152,17 +152,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 11px 16px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #8FCBE3;
 }
 
 .bcs-detail-last  { border-bottom: none; }
-.bcs-detail-label { font-size: 13px; color: #888; font-weight: 500; }
-.bcs-detail-val   { font-size: 13px; color: #111; font-weight: 500; text-align: right; }
+.bcs-detail-label { font-size: 13px; color: #4E7182; font-weight: 500; }
+.bcs-detail-val   { font-size: 13px; color: #16303D; font-weight: 500; text-align: right; }
 
 .bcs-done-btn {
   width: 100%;
   height: 50px;
-  background: #111;
+  background: #2E86AB;
   border: none;
   border-radius: 12px;
   color: #fff;
@@ -173,7 +173,7 @@
   margin-top: 18px;
   transition: background .15s;
 }
-.bcs-done-btn:hover { background: #333; }
+.bcs-done-btn:hover { background: #123247; }
 
 @media (max-width: 480px) {
   .bcs-page  { padding: 0; align-items: flex-start; }

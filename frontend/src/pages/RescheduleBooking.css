@@ -2,16 +2,16 @@
   display: flex;
   min-height: 100vh;
   font-family: 'Inter', system-ui, sans-serif;
-  background: #fafafa;
-  color: #111;
+  background: #EAF7FC;
+  color: #16303D;
 }
 
 /* ── Sidebar ── */
 .rb-sidebar {
   width: 300px;
   min-height: 100vh;
-  background: #111;
-  color: #fff;
+  background: #123247;
+  color: #EAF7FC;
   display: flex;
   flex-direction: column;
   padding: 2.5rem 2rem;
@@ -24,7 +24,7 @@
 .rb-brand {
   font-size: 1.3rem;
   font-weight: 800;
-  color: #fff;
+  color: #EAF7FC;
   margin-bottom: 3rem;
   letter-spacing: -0.5px;
 }
@@ -34,7 +34,7 @@
 .rb-sidebar-heading {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #fff;
+  color: #EAF7FC;
   line-height: 1.3;
   margin: 0 0 0.75rem;
   letter-spacing: -0.5px;
@@ -42,7 +42,7 @@
 
 .rb-sidebar-sub {
   font-size: 0.875rem;
-  color: #888;
+  color: #4E7182;
   line-height: 1.7;
   margin: 0;
 }
@@ -64,8 +64,8 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #333;
-  color: #888;
+  background: #2E86AB;
+  color: #CFEEF8;
   font-size: 0.8rem;
   font-weight: 700;
   display: flex;
@@ -75,25 +75,25 @@
   transition: background 0.2s, color 0.2s;
 }
 
-.rb-stp--active .rb-stp-num { background: #fff; color: #111; }
+.rb-stp--active .rb-stp-num { background: #EAF7FC; color: #16303D; }
 .rb-stp--done .rb-stp-num   { background: #22c55e; color: #fff; }
 
 .rb-stp-label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #888;
+  color: #4E7182;
   transition: color 0.2s;
 }
 
-.rb-stp--active .rb-stp-label { color: #fff; }
+.rb-stp--active .rb-stp-label { color: #EAF7FC; }
 .rb-stp--done .rb-stp-label   { color: #22c55e; }
 
-.rb-stp-sub { font-size: 0.75rem; color: #555; margin-top: 1px; }
+.rb-stp-sub { font-size: 0.75rem; color: #4E7182; margin-top: 1px; }
 
 .rb-stp-line {
   width: 1px;
   height: 20px;
-  background: #333;
+  background: #2E86AB;
   margin-left: 13px;
 }
 
@@ -116,25 +116,25 @@
 .rb-main-heading {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #111;
+  color: #16303D;
   margin: 0 0 0.25rem;
   letter-spacing: -0.5px;
 }
 
-.rb-main-sub { font-size: 0.9rem; color: #888; margin: 0; }
+.rb-main-sub { font-size: 0.9rem; color: #4E7182; margin: 0; }
 
 .rb-close-btn {
   background: transparent;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
   border-radius: 8px;
-  color: #888;
+  color: #4E7182;
   font-size: 0.85rem;
   padding: 0.5rem 1rem;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
   white-space: nowrap;
 }
-.rb-close-btn:hover { border-color: #111; color: #111; }
+.rb-close-btn:hover { border-color: #2E86AB; color: #16303D; }
 
 .rb-error {
   background: #fff5f5;
@@ -147,19 +147,25 @@
 }
 
 /* ── Step 1: Booking list ── */
-.rb-loading { color: #888; font-size: 0.9rem; padding: 2rem 0; }
+.rb-loading { color: #4E7182; font-size: 0.9rem; padding: 2rem 0; }
 
 .rb-empty {
   text-align: center;
-  color: #888;
+  color: #4E7182;
   padding: 4rem 0;
 }
 
 .rb-empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
 .rb-empty p    { margin: 0 0 0.25rem; font-size: 0.95rem; }
-.rb-empty-sub  { font-size: 0.8rem !important; color: #bbb !important; }
+.rb-empty-sub  { font-size: 0.8rem !important; color: #4E7182 !important; }
 
 .rb-booking-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.rb-booking-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
 .rb-booking-card {
   display: flex;
@@ -167,30 +173,60 @@
   gap: 1rem;
   padding: 1.1rem 1.25rem;
   background: #fff;
-  border: 1.5px solid #e5e5e5;
+  border: 1.5px solid #8FCBE3;
   border-radius: 12px;
-  cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.rb-booking-card:hover { border-color: #111; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.rb-booking-card:hover { border-color: #6FBEDD; box-shadow: 0 2px 8px rgba(18,50,71,0.1); }
 
 .rb-booking-icon { font-size: 1.75rem; flex-shrink: 0; }
 
 .rb-booking-info { flex: 1; min-width: 0; }
 
-.rb-booking-device { font-weight: 600; color: #111; font-size: 0.95rem; }
-.rb-booking-meta   { font-size: 0.8rem; color: #888; margin-top: 0.2rem; }
-.rb-booking-issue  { font-size: 0.78rem; color: #aaa; margin-top: 0.2rem; }
+.rb-booking-device { font-weight: 600; color: #16303D; font-size: 0.95rem; }
+.rb-booking-meta   { font-size: 0.8rem; color: #4E7182; margin-top: 0.2rem; }
+.rb-booking-issue  { font-size: 0.78rem; color: #4E7182; margin-top: 0.2rem; }
 
 .rb-booking-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.rb-booking-arrow { color: #ccc; font-size: 1.1rem; }
+.rb-chat-btn {
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  color: #16303D;
+  border: 1.5px solid #8FCBE3;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s;
+}
+.rb-chat-btn:hover { border-color: #2E86AB; background: #CFEEF8; }
+
+.rb-reschedule-btn {
+  padding: 0.4rem 0.85rem;
+  background: #2E86AB;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.rb-reschedule-btn:hover { background: #123247; }
 
 /* ── Badges ── */
 .rb-badge {
@@ -199,11 +235,15 @@
   border-radius: 20px;
   font-size: 0.72rem;
   font-weight: 600;
+  white-space: nowrap;
 }
-.rb-badge-pending   { background: #fefce8; color: #a16207; }
-.rb-badge-accepted  { background: #f0fdf4; color: #15803d; }
-.rb-badge-declined  { background: #fff5f5; color: #dc2626; }
-.rb-badge-completed { background: #eff6ff; color: #1d4ed8; }
+.rb-badge-pending     { background: #fefce8; color: #a16207; }
+.rb-badge-confirmed   { background: #eff6ff; color: #1d4ed8; }
+.rb-badge-in_route    { background: #eef2ff; color: #4338ca; }
+.rb-badge-in_progress { background: #f5f3ff; color: #6d28d9; }
+.rb-badge-completed   { background: #f0fdf4; color: #15803d; }
+.rb-badge-declined    { background: #fff5f5; color: #dc2626; }
+.rb-badge-cancelled   { background: #f5f5f5; color: #6b7280; }
 
 /* ── Step 2: Reschedule layout ── */
 .rb-reschedule-layout {
@@ -218,15 +258,15 @@
   align-items: center;
   gap: 0.75rem;
   background: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
   border-radius: 10px;
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
   font-size: 0.875rem;
 }
 
-.rb-current-label { color: #888; white-space: nowrap; }
-.rb-current-val   { color: #111; font-weight: 500; }
+.rb-current-label { color: #4E7182; white-space: nowrap; }
+.rb-current-val   { color: #16303D; font-weight: 500; }
 
 /* ── Calendar ── */
 .rb-cal-nav-row {
@@ -236,12 +276,12 @@
   margin-bottom: 0.75rem;
 }
 
-.rb-month-label { font-size: 0.95rem; font-weight: 600; color: #111; }
+.rb-month-label { font-size: 0.95rem; font-weight: 600; color: #16303D; }
 
 .rb-nav-btn {
   background: transparent;
-  border: 1px solid #e5e5e5;
-  color: #888;
+  border: 1px solid #8FCBE3;
+  color: #4E7182;
   width: 32px;
   height: 32px;
   border-radius: 6px;
@@ -253,7 +293,7 @@
   transition: border-color 0.15s, color 0.15s;
   line-height: 1;
 }
-.rb-nav-btn:hover { border-color: #111; color: #111; }
+.rb-nav-btn:hover { border-color: #2E86AB; color: #16303D; }
 
 .rb-cal-grid {
   display: grid;
@@ -264,7 +304,7 @@
 
 .rb-day-hd {
   font-size: 0.65rem;
-  color: #bbb;
+  color: #4E7182;
   text-align: center;
   padding: 0.2rem 0;
   font-weight: 600;
@@ -281,25 +321,25 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.rb-cal-day--avail { color: #111; background: #fff; border: 1px solid #e5e5e5; }
-.rb-cal-day--avail:hover { background: #f5f5f5; border-color: #bbb; }
-.rb-cal-day--past  { color: #ccc; background: transparent; cursor: default; }
-.rb-cal-day--orig  { color: #888; background: #fff8dc; border: 1px dashed #f59e0b; cursor: default; }
-.rb-cal-day--sel   { background: #111; color: #fff; font-weight: 700; border-color: #111; }
+.rb-cal-day--avail { color: #16303D; background: #fff; border: 1px solid #8FCBE3; }
+.rb-cal-day--avail:hover { background: #CFEEF8; border-color: #6FBEDD; }
+.rb-cal-day--past  { color: #8FCBE3; background: transparent; cursor: default; }
+.rb-cal-day--orig  { color: #4E7182; background: #fff8dc; border: 1px dashed #f59e0b; cursor: default; }
+.rb-cal-day--sel   { background: #2E86AB; color: #fff; font-weight: 700; border-color: #2E86AB; }
 
 /* ── Legend ── */
 .rb-legend { display: flex; gap: 1rem; flex-wrap: wrap; }
-.rb-leg    { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: #888; }
+.rb-leg    { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: #4E7182; }
 .rb-leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-.rb-leg-avail { background: #fff; border: 1px solid #e5e5e5; }
+.rb-leg-avail { background: #fff; border: 1px solid #8FCBE3; }
 .rb-leg-orig  { background: #fff8dc; border: 1px dashed #f59e0b; }
-.rb-leg-sel   { background: #111; }
-.rb-leg-past  { background: #f5f5f5; }
+.rb-leg-sel   { background: #2E86AB; }
+.rb-leg-past  { background: #CFEEF8; }
 
 /* ── Slots ── */
 .rb-slots-col {
   background: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
   border-radius: 12px;
   padding: 1.25rem;
   display: flex;
@@ -315,7 +355,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #bbb;
+  color: #4E7182;
   font-size: 0.875rem;
   gap: 0.5rem;
   padding: 1rem;
@@ -326,8 +366,8 @@
 .rb-slots-heading {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #111;
-  border-bottom: 1px solid #f5f5f5;
+  color: #16303D;
+  border-bottom: 1px solid #CFEEF8;
   padding-bottom: 0.5rem;
 }
 
@@ -339,21 +379,21 @@
 
 .rb-slot {
   padding: 0.55rem 0.5rem;
-  background: #fafafa;
-  border: 1.5px solid #e5e5e5;
+  background: #EAF7FC;
+  border: 1.5px solid #8FCBE3;
   border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 500;
-  color: #111;
+  color: #16303D;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
   font-family: inherit;
   text-align: center;
 }
 
-.rb-slot:hover:not(:disabled) { background: #f5f5f5; border-color: #bbb; }
-.rb-slot-taken  { color: #ccc; cursor: not-allowed; text-decoration: line-through; }
-.rb-slot-picked { background: #111; color: #fff; border-color: #111; }
+.rb-slot:hover:not(:disabled) { background: #CFEEF8; border-color: #6FBEDD; }
+.rb-slot-taken  { color: #8FCBE3; cursor: not-allowed; text-decoration: line-through; }
+.rb-slot-picked { background: #2E86AB; color: #fff; border-color: #2E86AB; }
 
 .rb-confirm-info {
   background: #f0fdf4;
@@ -374,7 +414,7 @@
 /* ── Buttons ── */
 .rb-btn {
   padding: 0.8rem 1.5rem;
-  background: #111;
+  background: #2E86AB;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -385,14 +425,14 @@
   transition: background 0.15s;
   text-align: center;
 }
-.rb-btn:hover:not(:disabled) { background: #333; }
+.rb-btn:hover:not(:disabled) { background: #123247; }
 .rb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .rb-btn-secondary {
   padding: 0.7rem 1.25rem;
   background: transparent;
-  color: #888;
-  border: 1.5px solid #e5e5e5;
+  color: #4E7182;
+  border: 1.5px solid #8FCBE3;
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -401,7 +441,7 @@
   transition: border-color 0.15s, color 0.15s;
   text-align: center;
 }
-.rb-btn-secondary:hover { border-color: #111; color: #111; }
+.rb-btn-secondary:hover { border-color: #2E86AB; color: #16303D; }
 
 /* ── Actions row ── */
 .rb-actions {
@@ -423,7 +463,7 @@
 .rb-success-icon {
   width: 72px;
   height: 72px;
-  background: #111;
+  background: #2E86AB;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -443,14 +483,14 @@
 .rb-success-heading {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #111;
+  color: #16303D;
   margin: 0 0 0.5rem;
   letter-spacing: -0.5px;
 }
 
 .rb-success-msg {
   font-size: 0.9rem;
-  color: #888;
+  color: #4E7182;
   line-height: 1.7;
   margin-bottom: 2rem;
   max-width: 420px;
@@ -460,7 +500,7 @@
   width: 100%;
   max-width: 460px;
   background: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 1.5rem;
@@ -472,15 +512,79 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid #CFEEF8;
   font-size: 0.875rem;
 }
 .rb-confirm-row:last-child { border-bottom: none; }
-.rb-confirm-row span:first-child { color: #888; }
-.rb-confirm-row span:last-child  { color: #111; font-weight: 500; }
+.rb-confirm-row span:first-child { color: #4E7182; }
+.rb-confirm-row span:last-child  { color: #16303D; font-weight: 500; }
 
-.rb-old-val { color: #888 !important; text-decoration: line-through; }
+.rb-old-val { color: #4E7182 !important; text-decoration: line-through; }
 .rb-new-val { color: #15803d !important; }
+
+/* ── Review form (completed bookings) ── */
+.rh-review-form {
+  display: grid;
+  gap: 0.75rem;
+  background: #CFEEF8;
+  border: 1.5px solid #8FCBE3;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin: -0.25rem 0 0.25rem;
+}
+
+.rh-review-head { display: flex; justify-content: space-between; gap: 0.75rem; }
+.rh-review-head strong { display: block; color: #16303D; margin-bottom: 0.2rem; font-size: 0.9rem; }
+.rh-review-head span, .rh-review-note { display: block; color: #4E7182; font-size: 0.78rem; }
+
+.rh-stars { display: inline-flex; width: max-content; gap: 0.25rem; }
+
+.rh-star {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #8FCBE3;
+  border-radius: 8px;
+  background: #fff;
+  color: #8FCBE3;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.rh-star-active { color: #f59e0b; border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.08); }
+.rh-star:disabled { cursor: default; opacity: 0.7; }
+
+.rh-review-form textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  border: 1.5px solid #8FCBE3;
+  border-radius: 8px;
+  background: #fff;
+  color: #16303D;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.6rem 0.75rem;
+  outline: none;
+}
+.rh-review-form textarea:focus { border-color: #2E86AB; }
+.rh-review-form textarea:disabled { color: #4E7182; }
+
+.rh-review-error { color: #dc2626; font-size: 0.8rem; }
+
+.rh-review-submit {
+  width: max-content;
+  padding: 0.55rem 1.1rem;
+  background: #2E86AB;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.rh-review-submit:hover:not(:disabled) { background: #123247; }
+.rh-review-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 900px) {
   .rb-sidebar { display: none; }

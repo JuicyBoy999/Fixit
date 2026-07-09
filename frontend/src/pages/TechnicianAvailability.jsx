@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import logo from '../assets/image.png';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -76,55 +77,57 @@ export default function TechnicianAvailability() {
   };
 
   const inputStyle = {
-    padding: '7px 10px', background: '#1e3a5f',
-    border: '1px solid #2d4f7c', borderRadius: 6,
-    color: '#fff', fontSize: 13, outline: 'none', cursor: 'pointer'
+    padding: '7px 10px', background: '#A3D8EC',
+    border: '1px solid #8FCBE3', borderRadius: 6,
+    color: '#16303D', fontSize: 13, outline: 'none', cursor: 'pointer'
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f1f3d', padding: '2rem 1rem', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#EAF7FC', padding: '2rem 1rem', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
 
         {}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2rem' }}>
-          <div style={{ width: 36, height: 36, background: '#38bdf8', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>⚡</div>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>Fixit</span>
-          <span style={{ color: '#2d4f7c', marginLeft: 4 }}>/ Availability</span>
+          <div style={{ width: 36, height: 36, background: '#38bdf8', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, overflow: 'hidden' }}>
+            <img src={logo} alt="Fixit" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+          </div>
+          <span style={{ color: '#16303D', fontWeight: 700, fontSize: 18 }}>Fixit</span>
+          <span style={{ color: '#4E7182', marginLeft: 4 }}>/ Availability</span>
         </div>
 
-        <h2 style={{ color: '#fff', fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Working Hours & Availability</h2>
-        <p style={{ color: '#94a3b8', fontSize: 14, marginBottom: '1.5rem' }}>Set your schedule so customers only see your free slots</p>
+        <h2 style={{ color: '#16303D', fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Working Hours & Availability</h2>
+        <p style={{ color: '#4E7182', fontSize: 14, marginBottom: '1.5rem' }}>Set your schedule so customers only see your free slots</p>
 
         {}
-        <div style={{ display: 'flex', gap: 4, marginBottom: '1.5rem', background: '#152a4a', borderRadius: 10, padding: 4 }}>
+        <div style={{ display: 'flex', gap: 4, marginBottom: '1.5rem', background: '#CFEEF8', borderRadius: 10, padding: 4 }}>
           {[['hours', '🕐 Working Hours'], ['calendar', '📅 Calendar Preview']].map(([tab, label]) => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
               flex: 1, padding: '9px', border: 'none', borderRadius: 8, cursor: 'pointer',
               background: activeTab === tab ? '#38bdf8' : 'transparent',
-              color: activeTab === tab ? '#0f1f3d' : '#94a3b8',
+              color: activeTab === tab ? '#16303D' : '#4E7182',
               fontWeight: 600, fontSize: 14, transition: 'all 0.15s'
             }}>{label}</button>
           ))}
         </div>
 
         {activeTab === 'hours' ? (
-          <div style={{ background: '#152a4a', borderRadius: 16, padding: '2rem', boxShadow: '0 25px 50px rgba(0,0,0,0.4)' }}>
+          <div style={{ background: '#CFEEF8', borderRadius: 16, padding: '2rem', boxShadow: '0 25px 50px rgba(18,50,71,0.25)' }}>
 
-            <p style={{ color: '#94a3b8', fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: '1rem' }}>SET WORKING HOURS PER DAY</p>
+            <p style={{ color: '#4E7182', fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: '1rem' }}>SET WORKING HOURS PER DAY</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {DAYS.map(day => (
                 <div key={day} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '14px 16px', borderRadius: 10,
-                  background: hours[day].enabled ? 'rgba(56,189,248,0.07)' : '#1a2f4a',
-                  border: `1.5px solid ${hours[day].enabled ? '#2d4f7c' : '#1a2f4a'}`,
+                  background: hours[day].enabled ? 'rgba(56,189,248,0.07)' : '#EAF7FC',
+                  border: `1.5px solid ${hours[day].enabled ? '#8FCBE3' : '#EAF7FC'}`,
                   transition: 'all 0.15s'
                 }}>
                   {}
                   <div onClick={() => toggleDay(day)} style={{
                     width: 40, height: 22, borderRadius: 11, cursor: 'pointer',
-                    background: hours[day].enabled ? '#38bdf8' : '#2d4f7c',
+                    background: hours[day].enabled ? '#38bdf8' : '#8FCBE3',
                     position: 'relative', transition: 'background 0.2s', flexShrink: 0
                   }}>
                     <div style={{
@@ -136,7 +139,7 @@ export default function TechnicianAvailability() {
                   </div>
 
                   {}
-                  <span style={{ color: hours[day].enabled ? '#fff' : '#475569', fontWeight: 600, fontSize: 14, width: 100, flexShrink: 0 }}>
+                  <span style={{ color: hours[day].enabled ? '#16303D' : '#4E7182', fontWeight: 600, fontSize: 14, width: 100, flexShrink: 0 }}>
                     {day}
                   </span>
 
@@ -145,7 +148,7 @@ export default function TechnicianAvailability() {
                       <select value={hours[day].start} onChange={e => updateHour(day, 'start', e.target.value)} style={inputStyle}>
                         {TIME_SLOTS.map(t => <option key={t}>{t}</option>)}
                       </select>
-                      <span style={{ color: '#64748b', fontSize: 13 }}>to</span>
+                      <span style={{ color: '#4E7182', fontSize: 13 }}>to</span>
                       <select value={hours[day].end} onChange={e => updateHour(day, 'end', e.target.value)} style={inputStyle}>
                         {TIME_SLOTS.map(t => <option key={t}>{t}</option>)}
                       </select>
@@ -154,28 +157,28 @@ export default function TechnicianAvailability() {
                       </span>
                     </div>
                   ) : (
-                    <span style={{ color: '#475569', fontSize: 13 }}>Day Off</span>
+                    <span style={{ color: '#4E7182', fontSize: 13 }}>Day Off</span>
                   )}
                 </div>
               ))}
             </div>
 
             {}
-            <div style={{ display: 'flex', gap: 20, marginTop: '1.5rem', padding: '12px 16px', background: '#1e3a5f', borderRadius: 10 }}>
+            <div style={{ display: 'flex', gap: 20, marginTop: '1.5rem', padding: '12px 16px', background: '#A3D8EC', borderRadius: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#38bdf8' }} />
-                <span style={{ color: '#94a3b8', fontSize: 12 }}>Working day</span>
+                <span style={{ color: '#16303D', fontSize: 12 }}>Working day</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2d4f7c' }} />
-                <span style={{ color: '#94a3b8', fontSize: 12 }}>Day off</span>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#8FCBE3' }} />
+                <span style={{ color: '#16303D', fontSize: 12 }}>Day off</span>
               </div>
             </div>
 
             <button onClick={handleSave} style={{
               width: '100%', padding: '13px', marginTop: '1.5rem',
               background: saved ? '#22c55e' : '#38bdf8',
-              color: '#0f1f3d', border: 'none', borderRadius: 8,
+              color: '#16303D', border: 'none', borderRadius: 8,
               fontWeight: 700, fontSize: 15, cursor: 'pointer', transition: 'background 0.3s'
             }}>
               {saved ? '✓ Schedule Saved!' : 'Save Schedule'}
@@ -183,22 +186,22 @@ export default function TechnicianAvailability() {
           </div>
 
         ) : (
-          
-          <div style={{ background: '#152a4a', borderRadius: 16, padding: '2rem', boxShadow: '0 25px 50px rgba(0,0,0,0.4)' }}>
+
+          <div style={{ background: '#CFEEF8', borderRadius: 16, padding: '2rem', boxShadow: '0 25px 50px rgba(18,50,71,0.25)' }}>
 
             {}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ color: '#fff', margin: 0, fontSize: 16, fontWeight: 700 }}>June 2025</h3>
+              <h3 style={{ color: '#16303D', margin: 0, fontSize: 16, fontWeight: 700 }}>June 2025</h3>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button style={{ padding: '6px 12px', background: '#1e3a5f', border: '1px solid #2d4f7c', borderRadius: 6, color: '#94a3b8', cursor: 'pointer' }}>‹</button>
-                <button style={{ padding: '6px 12px', background: '#1e3a5f', border: '1px solid #2d4f7c', borderRadius: 6, color: '#94a3b8', cursor: 'pointer' }}>›</button>
+                <button style={{ padding: '6px 12px', background: '#A3D8EC', border: '1px solid #8FCBE3', borderRadius: 6, color: '#16303D', cursor: 'pointer' }}>‹</button>
+                <button style={{ padding: '6px 12px', background: '#A3D8EC', border: '1px solid #8FCBE3', borderRadius: 6, color: '#16303D', cursor: 'pointer' }}>›</button>
               </div>
             </div>
 
             {}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 4 }}>
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-                <div key={d} style={{ textAlign: 'center', color: '#64748b', fontSize: 11, fontWeight: 600, padding: '6px 0' }}>{d}</div>
+                <div key={d} style={{ textAlign: 'center', color: '#4E7182', fontSize: 11, fontWeight: 600, padding: '6px 0' }}>{d}</div>
               ))}
             </div>
 
@@ -216,11 +219,11 @@ export default function TechnicianAvailability() {
                     aspectRatio: '1', display: 'flex', flexDirection: 'column',
                     alignItems: 'center', justifyContent: 'center',
                     borderRadius: 8, cursor: 'pointer', position: 'relative',
-                    background: isSelected ? '#38bdf8' : working ? 'rgba(56,189,248,0.08)' : '#1a2f4a',
-                    border: `1.5px solid ${isSelected ? '#38bdf8' : isToday ? '#38bdf8' : working ? '#2d4f7c' : 'transparent'}`,
+                    background: isSelected ? '#38bdf8' : working ? 'rgba(56,189,248,0.08)' : '#EAF7FC',
+                    border: `1.5px solid ${isSelected ? '#38bdf8' : isToday ? '#38bdf8' : working ? '#8FCBE3' : 'transparent'}`,
                     transition: 'all 0.15s'
                   }}>
-                    <span style={{ fontSize: 13, fontWeight: isToday ? 700 : 400, color: isSelected ? '#0f1f3d' : working ? '#fff' : '#374151' }}>
+                    <span style={{ fontSize: 13, fontWeight: isToday ? 700 : 400, color: isSelected ? '#16303D' : working ? '#16303D' : '#4E7182' }}>
                       {day}
                     </span>
                     {hasBooking && !isSelected && (
@@ -234,8 +237,8 @@ export default function TechnicianAvailability() {
             {}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: '1.5rem' }}>
               {[
-                { color: 'rgba(56,189,248,0.08)', border: '#2d4f7c', label: 'Available' },
-                { color: '#1a2f4a', border: 'transparent', label: 'Day off (greyed out)' },
+                { color: 'rgba(56,189,248,0.08)', border: '#8FCBE3', label: 'Available' },
+                { color: '#EAF7FC', border: 'transparent', label: 'Day off (greyed out)' },
                 { color: '#38bdf8', border: '#38bdf8', label: 'Selected day' },
                 { color: '#f59e0b', border: 'none', label: '● Has bookings', dot: true },
               ].map(({ color, border, label, dot }) => (
@@ -245,20 +248,20 @@ export default function TechnicianAvailability() {
                   ) : (
                     <div style={{ width: 14, height: 14, borderRadius: 4, background: color, border: `1.5px solid ${border}` }} />
                   )}
-                  <span style={{ color: '#94a3b8', fontSize: 12 }}>{label}</span>
+                  <span style={{ color: '#4E7182', fontSize: 12 }}>{label}</span>
                 </div>
               ))}
             </div>
 
             {}
-            <div style={{ borderTop: '1px solid #2d4f7c', paddingTop: '1.5rem' }}>
-              <p style={{ color: '#94a3b8', fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: '1rem' }}>
+            <div style={{ borderTop: '1px solid #8FCBE3', paddingTop: '1.5rem' }}>
+              <p style={{ color: '#4E7182', fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: '1rem' }}>
                 TIME SLOTS — {getDayName(selectedDay).toUpperCase()} {selectedDay}
               </p>
 
               {!isWorkingDay(selectedDay) ? (
-                <div style={{ padding: '1rem', background: '#1a2f4a', borderRadius: 10, textAlign: 'center' }}>
-                  <p style={{ color: '#475569', margin: 0, fontSize: 14 }}>🚫 Day off — no slots available</p>
+                <div style={{ padding: '1rem', background: '#EAF7FC', borderRadius: 10, textAlign: 'center' }}>
+                  <p style={{ color: '#4E7182', margin: 0, fontSize: 14 }}>🚫 Day off — no slots available</p>
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -267,15 +270,15 @@ export default function TechnicianAvailability() {
                     const colors = {
                       available: { bg: 'rgba(34,197,94,0.1)', border: '#22c55e', color: '#22c55e', label: 'Free' },
                       booked:    { bg: 'rgba(239,68,68,0.1)', border: '#ef4444', color: '#ef4444', label: 'Booked' },
-                      outside:   { bg: '#1a2f4a', border: '#1a2f4a', color: '#374151', label: 'Closed' },
-                      off:       { bg: '#1a2f4a', border: '#1a2f4a', color: '#374151', label: 'Off' },
+                      outside:   { bg: '#EAF7FC', border: '#EAF7FC', color: '#4E7182', label: 'Closed' },
+                      off:       { bg: '#EAF7FC', border: '#EAF7FC', color: '#4E7182', label: 'Off' },
                     }[status];
                     return (
                       <div key={slot} style={{
                         padding: '10px 8px', borderRadius: 8, textAlign: 'center',
                         background: colors.bg, border: `1.5px solid ${colors.border}`,
                       }}>
-                        <p style={{ color: status === 'outside' || status === 'off' ? '#374151' : '#fff', margin: 0, fontSize: 13, fontWeight: 600 }}>{slot}</p>
+                        <p style={{ color: status === 'outside' || status === 'off' ? '#4E7182' : '#16303D', margin: 0, fontSize: 13, fontWeight: 600 }}>{slot}</p>
                         <p style={{ color: colors.color, margin: '2px 0 0', fontSize: 11 }}>{colors.label}</p>
                       </div>
                     );

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import logo from '../assets/image.png'
 import './Signup.css'
 
 export default function Signup() {
@@ -82,14 +83,14 @@ export default function Signup() {
   return (
     <div className="sg-page">
       <nav className="sg-nav">
-        <a href="/" className="sg-nav-logo">⚡ Fixit</a>
+        <a href="/" className="sg-nav-logo"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</a>
         <a href="/login" className="sg-nav-link">Already have an account? <span>Sign in →</span></a>
       </nav>
       <main className="sg-main">
       <div className="sg-box">
 
         <div className="sg-logo">
-          <div className="sg-icon-box">⚡</div>
+          <div className="sg-icon-box"><img src={logo} alt="Fixit" className="brand-logo-img" /></div>
           <span className="sg-brand">Fi<b>x</b>it</span>
         </div>
 
@@ -255,7 +256,7 @@ export default function Signup() {
       <footer className="sg-footer">
         <div className="sg-footer-grid">
           <div className="sg-footer-brand">
-            <div className="sg-footer-logo">⚡ Fixit</div>
+            <div className="sg-footer-logo"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
             <p className="sg-footer-desc">
               Nepal&apos;s on-demand electronics repair platform. Connecting
               customers with certified technicians for fast, reliable repairs at home.

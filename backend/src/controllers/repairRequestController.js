@@ -4,15 +4,20 @@ import { addNotification } from '../models/notificationModel.js';
 export const listRepairRequests = async (req, res) => {
   try {
     const techId = req.user?.id;
+    console.log('[LIST REQUESTS] techId from token:', techId);
     const { rows } = await pool.query(
       `SELECT r.*,
               u.first_name AS technician_first_name,
-              u.last_name  AS technician_last_name
+              u.last_name  AS technician_last_name,
+              cu.first_name AS customer_first_name,
+              cu.last_name  AS customer_last_name
        FROM repair_requests r
-       LEFT JOIN users u ON u.id = r.technician_id
-       WHERE r.technician_id IS NULL OR r.technician_id = $1
+       LEFT JOIN users u  ON u.id  = r.technician_id
+       LEFT JOIN users cu ON cu.id = r.customer_id
+       WHERE r.status = 'pending'
+          OR r.technician_id = $1
        ORDER BY r.created_at DESC`,
-      [techId || null]
+      [techId || 0]
     );
     res.json({ requests: rows });
   } catch (err) {
@@ -39,6 +44,8 @@ export const createRepairRequest = async (req, res) => {
     const { technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area } = req.body;
     const customer_id = req.user?.id || req.body.customer_id || null;
 
+    console.log('[CREATE BOOKING] customer_id:', customer_id, '| technician_id:', technician_id, '| device:', device_type, '| req.user:', req.user?.id);
+
     if (!device_type || !preferred_date || !customer_area) {
       return res.status(400).json({ error: 'device_type, preferred_date and customer_area are required' });
     }
@@ -51,6 +58,8 @@ export const createRepairRequest = async (req, res) => {
       [customer_id, technician_id, device_type, fault_description, photo_url || null, preferred_date, preferred_time || null, customer_area]
     );
 
+    console.log('[CREATE BOOKING] Saved row id:', rows[0]?.id, '| customer_id in DB:', rows[0]?.customer_id, '| technician_id in DB:', rows[0]?.technician_id);
+
     if (customer_id) {
       await addNotification(
         customer_id,
@@ -58,6 +67,28 @@ export const createRepairRequest = async (req, res) => {
         `We received your ${device_type} repair request for ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''}. A technician will confirm shortly.`,
         'info'
       );
+    }
+
+    // US-15: notify technicians in the same city (or all technicians if city not matched)
+    try {
+      const { rows: techs } = await pool.query(
+        `SELECT id FROM users WHERE role = 'technician' AND LOWER(city) = LOWER($1)`,
+        [customer_area]
+      );
+      // Fallback: notify all technicians if city query returns none
+      const notifyList = techs.length > 0 ? techs : (
+        await pool.query(`SELECT id FROM users WHERE role = 'technician'`)
+      ).rows;
+      for (const tech of notifyList) {
+        await addNotification(
+          tech.id,
+          'New repair request nearby',
+          `A customer in ${customer_area} has requested ${device_type} repair for ${preferred_date}. Check your repair requests to accept.`,
+          'info'
+        );
+      }
+    } catch (err) {
+      console.error('[CREATE BOOKING] technician notification failed:', err.message);
     }
 
     res.status(201).json({ success: true, request: rows[0] });
@@ -71,30 +102,103 @@ export const updateRepairRequestStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!['accepted', 'declined'].includes(status)) {
-      return res.status(400).json({ error: 'Status must be accepted or declined' });
+    const allowed = ['accepted', 'confirmed', 'in_route', 'in_progress', 'completed', 'declined'];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ error: `Status must be one of: ${allowed.join(', ')}` });
     }
 
+    // Only set technician_id when accepting/confirming — don't overwrite on decline
+    const setTech = !['declined'].includes(status);
     const { rows } = await pool.query(
-     `UPDATE repair_requests SET status = $1, technician_id = $2 WHERE id = $3 RETURNING *`,
-      [status, req.user.id, id]
+      setTech
+        ? `UPDATE repair_requests SET status = $1, technician_id = $2 WHERE id = $3 RETURNING *`
+        : `UPDATE repair_requests SET status = $1 WHERE id = $2 RETURNING *`,
+      setTech ? [status, req.user.id, id] : [status, id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Request not found' });
 
     const booking = rows[0];
     if (booking.customer_id) {
-      const confirmed = status === 'accepted';
-      await addNotification(
-        booking.customer_id,
-        confirmed ? 'Booking confirmed' : 'Booking declined',
-        confirmed
-          ? `A technician has accepted your ${booking.device_type} repair on ${booking.preferred_date}${booking.preferred_time ? ' at ' + booking.preferred_time : ''}.`
-          : `Your ${booking.device_type} repair request was declined. Please try another technician.`,
-        confirmed ? 'success' : 'danger'
-      );
+      const eta = req.body.eta || null;
+      const notifMap = {
+        accepted:    { title: 'Booking confirmed',       msg: `Your ${booking.device_type} repair has been accepted for ${booking.preferred_date}${booking.preferred_time ? ' at ' + booking.preferred_time : ''}.`, type: 'success' },
+        confirmed:   { title: 'Repair confirmed',        msg: `Your ${booking.device_type} repair appointment is confirmed for ${booking.preferred_date}${booking.preferred_time ? ' at ' + booking.preferred_time : ''}.`, type: 'success' },
+        in_route:    { title: 'Technician on the way!',  msg: `Your technician is heading to you now${eta ? ' — estimated arrival in ' + eta : ''}. Please be ready at home.`, type: 'info' },
+        in_progress: { title: 'Repair in progress',      msg: `Your technician has started working on your ${booking.device_type}. You will be notified when it is done.`, type: 'info' },
+        completed:   { title: 'Repair completed',        msg: `Your ${booking.device_type} repair is complete. Payment of the agreed amount is now due. Thank you for choosing Fixit!`, type: 'success' },
+        declined:    { title: 'Booking declined',        msg: `Your ${booking.device_type} repair request was declined. Please try another technician.`, type: 'danger' },
+      };
+      const n = notifMap[status];
+      if (n) await addNotification(booking.customer_id, n.title, n.msg, n.type);
     }
 
     res.json({ success: true, ...booking });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Technician earnings: completed repairs assigned to this tech
+export const getEarnings = async (req, res) => {
+  try {
+    const techId = parseInt(req.params.techId, 10);
+    if (isNaN(techId)) return res.json({ jobs: [], total: 0 });
+    const { rows } = await pool.query(
+      `SELECT r.id, r.device_type, r.preferred_date, r.fault_description,
+              r.cost, u.first_name AS customer_first_name, u.last_name AS customer_last_name
+       FROM repair_requests r
+       LEFT JOIN users u ON u.id = r.customer_id
+       WHERE r.technician_id = $1 AND r.status = 'completed'
+       ORDER BY r.preferred_date DESC`,
+      [techId]
+    );
+    const total = rows.reduce((sum, j) => sum + (Number(j.cost) || 0), 0);
+    res.json({ jobs: rows, total });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Simple in-app chat for a repair_request
+export const getRepairMessages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query(
+      `SELECT m.id, m.sender_id, m.content, m.created_at,
+              (u.first_name || ' ' || u.last_name) AS sender_name, u.role AS sender_role
+       FROM messages m
+       JOIN users u ON u.id = m.sender_id
+       WHERE m.repair_id = $1
+       ORDER BY m.created_at ASC`,
+      [id]
+    );
+    res.json({ messages: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const postRepairMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    const senderId = req.user?.id;
+    if (!content?.trim() || !senderId) return res.status(400).json({ error: 'Content required' });
+    const { rows } = await pool.query(
+      `INSERT INTO messages (repair_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *`,
+      [id, senderId, content.trim()]
+    );
+    const msg = rows[0];
+    // Notify the other party
+    const { rows: repairRows } = await pool.query(`SELECT * FROM repair_requests WHERE id = $1`, [id]);
+    if (repairRows.length) {
+      const repair = repairRows[0];
+      const otherId = repair.customer_id === senderId ? repair.technician_id : repair.customer_id;
+      if (otherId) {
+        await addNotification(otherId, 'New message', `You have a new message about your ${repair.device_type} repair.`, 'info');
+      }
+    }
+    res.status(201).json({ message: msg });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -112,6 +216,36 @@ export const claimOrphanedBookings = async (req, res) => {
     }
     res.json({ success: true });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Authenticated: list bookings for the logged-in customer (uses token, not URL param)
+export const listMyBookings = async (req, res) => {
+  try {
+    const customerId = req.user?.id;
+    console.log('[LIST MY BOOKINGS] customerId from token:', customerId);
+    if (!customerId) return res.status(401).json({ error: 'Not authenticated' });
+    const { rows } = await pool.query(
+      `SELECT r.*,
+              u.first_name AS technician_first_name,
+              u.last_name  AS technician_last_name,
+              rv.id         AS review_id,
+              rv.rating     AS review_rating,
+              rv.body       AS review_body,
+              rv.created_at AS review_created_at,
+              rv.edited_at  AS review_edited_at,
+              rv.original_body AS review_original_body
+       FROM repair_requests r
+       LEFT JOIN users u   ON u.id = r.technician_id
+       LEFT JOIN reviews rv ON rv.booking_id = r.id
+       WHERE r.customer_id = $1
+       ORDER BY r.created_at DESC`,
+      [customerId]
+    );
+    res.json({ requests: rows });
+  } catch (err) {
+    console.error('listMyBookings error:', err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -232,7 +366,7 @@ export const rescheduleRepairRequest = async (req, res) => {
 
     const { rows } = await pool.query(
       `UPDATE repair_requests
-       SET preferred_date = $1, preferred_time = $2, status = 'rescheduled'
+       SET preferred_date = $1, preferred_time = $2
        WHERE id = $3 RETURNING *`,
       [preferred_date, preferred_time || null, id]
     );

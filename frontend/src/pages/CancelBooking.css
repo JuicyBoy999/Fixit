@@ -1,6 +1,6 @@
 .cb-page {
   min-height: 100vh;
-  background: #fafafa;
+  background: #CFEEF8;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,9 +13,9 @@
   max-width: 480px;
   border-radius: 16px;
   overflow: hidden;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  background: #EAF7FC;
+  border: 1px solid #8FCBE3;
+  box-shadow: 0 4px 24px rgba(18,50,71,0.12);
 }
 
 .cb-header {
@@ -54,15 +54,15 @@
 }
 .cb-back:hover { background: rgba(255,255,255,.25); }
 
-.cb-body { padding: 20px 20px 24px; background: #fff; }
+.cb-body { padding: 20px 20px 24px; background: #EAF7FC; }
 
-.cb-instruction { font-size: 13px; color: #888; margin: 0 0 12px; }
+.cb-instruction { font-size: 13px; color: #4E7182; margin: 0 0 12px; }
 
 .cb-list { display: flex; flex-direction: column; gap: 8px; }
 
 .cb-item {
-  background: #fafafa;
-  border: 1px solid #e5e5e5;
+  background: #CFEEF8;
+  border: 1px solid #8FCBE3;
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
@@ -77,8 +77,8 @@
 
 .cb-device-icon { font-size: 22px; width: 36px; text-align: center; }
 
-.cb-item-name { font-size: 13px; font-weight: 500; color: #111; margin-bottom: 2px; }
-.cb-item-meta { font-size: 11px; color: #888; }
+.cb-item-name { font-size: 13px; font-weight: 500; color: #16303D; margin-bottom: 2px; }
+.cb-item-meta { font-size: 11px; color: #4E7182; }
 
 .cb-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; }
 .cb-badge-pending  { background: #fefce8; color: #a16207; }
@@ -97,11 +97,11 @@
 .cb-policy-list { margin: 0; padding-left: 16px; font-size: 12px; color: #a16207; line-height: 1.7; }
 
 .cb-details {
-  background: #fafafa;
+  background: #CFEEF8;
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 16px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
 }
 
 .cb-detail-row {
@@ -109,12 +109,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 11px 16px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #8FCBE3;
 }
 
 .cb-detail-last { border-bottom: none; }
-.cb-detail-label { font-size: 13px; color: #888; font-weight: 500; }
-.cb-detail-val   { font-size: 13px; color: #111; font-weight: 500; }
+.cb-detail-label { font-size: 13px; color: #4E7182; font-weight: 500; }
+.cb-detail-val   { font-size: 13px; color: #16303D; font-weight: 500; }
 .cb-cancelled-text { color: #dc2626 !important; }
 
 .cb-field { margin-bottom: 14px; }
@@ -122,7 +122,7 @@
 .cb-field-label {
   font-size: 11px;
   font-weight: 600;
-  color: #888;
+  color: #4E7182;
   text-transform: uppercase;
   letter-spacing: .6px;
   display: block;
@@ -131,24 +131,24 @@
 
 .cb-select {
   width: 100%;
-  background: #fafafa;
-  border: 1.5px solid #e5e5e5;
+  background: #CFEEF8;
+  border: 1.5px solid #8FCBE3;
   border-radius: 10px;
   padding: 11px 14px;
   font-size: 14px;
-  color: #111;
+  color: #16303D;
   outline: none;
   font-family: inherit;
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234E7182' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
-  background-color: #fafafa;
+  background-color: #CFEEF8;
   padding-right: 36px;
   transition: border-color .15s;
 }
-.cb-select:focus { border-color: #111; }
+.cb-select:focus { border-color: #2E86AB; }
 
 .cb-error {
   background: #fff5f5;
@@ -181,15 +181,15 @@
   width: 100%;
   height: 44px;
   background: transparent;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
   border-radius: 12px;
-  color: #888;
+  color: #4E7182;
   font-size: 14px;
   cursor: pointer;
   font-family: inherit;
   transition: border-color .15s, color .15s;
 }
-.cb-keep-btn:hover { border-color: #111; color: #111; }
+.cb-keep-btn:hover { border-color: #2E86AB; color: #16303D; }
 
 .cb-icon-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
 
@@ -212,11 +212,11 @@
   to   { transform: scale(1); opacity: 1; }
 }
 
-.cb-heading { font-size: 22px; font-weight: 700; color: #111; margin: 0 0 10px; text-align: center; }
-.cb-thanks  { font-size: 15px; color: #888; margin: 0 0 8px; text-align: center; }
-.cb-thanks strong { color: #111; }
-.cb-desc { font-size: 14px; color: #888; line-height: 1.6; margin: 0 0 20px; text-align: center; }
-.cb-desc strong { color: #111; }
+.cb-heading { font-size: 22px; font-weight: 700; color: #16303D; margin: 0 0 10px; text-align: center; }
+.cb-thanks  { font-size: 15px; color: #4E7182; margin: 0 0 8px; text-align: center; }
+.cb-thanks strong { color: #16303D; }
+.cb-desc { font-size: 14px; color: #4E7182; line-height: 1.6; margin: 0 0 20px; text-align: center; }
+.cb-desc strong { color: #16303D; }
 
 .cb-notifs { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
 
@@ -224,15 +224,15 @@
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 10px;
-  background: #f5f5f5;
-  color: #888;
-  border: 1px solid #e5e5e5;
+  background: #CFEEF8;
+  color: #4E7182;
+  border: 1px solid #8FCBE3;
 }
 
 .cb-done-btn {
   width: 100%;
   height: 50px;
-  background: #111;
+  background: #2E86AB;
   border: none;
   border-radius: 12px;
   color: #fff;
@@ -243,21 +243,21 @@
   transition: background .15s;
   margin-bottom: 10px;
 }
-.cb-done-btn:hover { background: #333; }
+.cb-done-btn:hover { background: #123247; }
 
 .cb-book-again-btn {
   width: 100%;
   height: 44px;
   background: transparent;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #8FCBE3;
   border-radius: 12px;
-  color: #888;
+  color: #4E7182;
   font-size: 14px;
   cursor: pointer;
   font-family: inherit;
   transition: border-color .15s, color .15s;
 }
-.cb-book-again-btn:hover { border-color: #111; color: #111; }
+.cb-book-again-btn:hover { border-color: #2E86AB; color: #16303D; }
 
 @media (max-width: 480px) {
   .cb-page  { padding: 0; align-items: flex-start; }

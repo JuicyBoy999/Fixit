@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/image.png';
 import './Login.css';
 
 export default function Login() {
@@ -39,7 +40,7 @@ export default function Login() {
       <div className="ln-left">
         <div className="ln-left-inner">
           <a href="/" className="ln-back">← Back to home</a>
-          <div className="ln-brand">⚡ Fixit</div>
+          <div className="ln-brand"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
           <h2 className="ln-left-heading">
             Fast repairs,<br />at your doorstep.
           </h2>

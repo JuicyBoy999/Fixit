@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/image.png';
 import './Dashboard.css';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -7,45 +8,58 @@ const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [user] = useState(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
   const [requests, setRequests] = useState([]);
+  const [activeRepair, setActiveRepair] = useState(null);
   const [stats, setStats] = useState({ total: 0, pending: 0, accepted: 0, completed: 0 });
   const [loading, setLoading] = useState(true);
   const [calMonth, setCalMonth] = useState(new Date());
 
-  const token = localStorage.getItem('token');
-
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (!stored) { navigate('/login'); return; }
-    const parsed = JSON.parse(stored);
-    if (parsed.role === 'technician') { navigate('/technician-dashboard'); return; }
-    setUser(parsed);
+    if (!user) { navigate('/login'); return; }
+    if (user.role === 'technician') { navigate('/technician-dashboard'); return; }
 
-    if (parsed.id) {
-      const base = 'http://localhost:5000/api/repair-requests';
-      fetch(`${base}/claim/${parsed.id}`, { method: 'POST' })
-        .catch(() => {})
-        .finally(() => {
-          fetch(`${base}/my/${parsed.id}`)
-            .then(r => r.json())
-            .then(data => {
-              const reqs = data.requests || [];
-              setRequests(reqs.slice(0, 6));
-              setStats({
-                total: reqs.length,
-                pending: reqs.filter(r => r.status === 'pending').length,
-                accepted: reqs.filter(r => r.status === 'accepted').length,
-                completed: reqs.filter(r => r.status === 'completed').length,
-              });
-            })
-            .catch(() => {})
-            .finally(() => setLoading(false));
+    const base = 'http://localhost:5000/api/repair-requests';
+    const token = localStorage.getItem('token');
+
+    const loadBookings = async () => {
+      // Try authenticated endpoint first (uses token → always correct customer)
+      try {
+        const res = await fetch(`${base}/mine`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-    } else {
-      setLoading(false);
-    }
-  }, []);
+        if (res.ok) {
+          const data = await res.json();
+          return data.requests || [];
+        }
+      } catch { /* fall through to orphaned-booking claim */ }
+      // Fallback: claim orphaned bookings then fetch by customer id
+      if (user.id) {
+        try { await fetch(`${base}/claim/${user.id}`, { method: 'POST' }); } catch { /* ignore claim failure */ }
+        try {
+          const res = await fetch(`${base}/my/${user.id}`);
+          const data = await res.json();
+          return data.requests || [];
+        } catch { /* no bookings found */ }
+      }
+      return [];
+    };
+
+    loadBookings().then(reqs => {
+      setRequests(reqs.slice(0, 6));
+      const active = reqs.find(r => ['confirmed','in_route','in_progress'].includes(r.status));
+      setActiveRepair(active || null);
+      setStats({
+        total: reqs.length,
+        pending: reqs.filter(r => r.status === 'pending').length,
+        accepted: reqs.filter(r => ['accepted','confirmed','in_route','in_progress'].includes(r.status)).length,
+        completed: reqs.filter(r => r.status === 'completed').length,
+      });
+    }).finally(() => setLoading(false));
+  }, [user, navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -81,7 +95,7 @@ export default function Dashboard() {
 
       <aside className="cd-sidebar">
         <div className="cd-logo">
-          <span className="cd-logo-icon">⚡</span>
+          <span className="cd-logo-icon"><img src={logo} alt="Fixit" className="brand-logo-img" /></span>
           <span className="cd-logo-text">Fixit</span>
         </div>
 
@@ -226,6 +240,43 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {activeRepair && (() => {
+          const stages = ['pending','confirmed','in_route','in_progress','completed'];
+          const stageLabels = { pending: 'Pending', confirmed: 'Confirmed', in_route: 'On the Way', in_progress: 'In Progress', completed: 'Completed' };
+          const cur = stages.indexOf(activeRepair.status);
+          return (
+            <div className="cd-card cd-status-tracker">
+              <div className="cd-card-header">
+                <span className="cd-card-title">Active Repair — {activeRepair.device_type}</span>
+                <button className="cd-btn-outline" onClick={() => navigate('/reschedule-booking')}>View Bookings</button>
+              </div>
+              <div className="cd-timeline">
+                {stages.map((s, i) => (
+                  <div key={s} className="cd-tl-item">
+                    <div className={`cd-tl-dot ${i < cur ? 'cd-tl-dot--done' : ''} ${i === cur ? 'cd-tl-dot--active' : ''}`}>
+                      {i < cur ? '✓' : i + 1}
+                    </div>
+                    <span className={`cd-tl-label ${i === cur ? 'cd-tl-label--active' : ''}`}>{stageLabels[s]}</span>
+                    {i < stages.length - 1 && <div className={`cd-tl-line ${i < cur ? 'cd-tl-line--done' : ''}`} />}
+                  </div>
+                ))}
+              </div>
+              {activeRepair.status === 'in_route' && (
+                <p className="cd-tl-note">Your technician is on the way — please be ready at home.</p>
+              )}
+              <div style={{ marginTop: '0.75rem' }}>
+                <button
+                  className="cd-btn-outline"
+                  onClick={() => navigate(`/chat/${activeRepair.id}`)}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  💬 Chat with Technician
+                </button>
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="cd-card">
           <div className="cd-card-header">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/image.png';
 import './TechnicianDashboard.css';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -11,6 +12,7 @@ export default function TechnicianDashboard() {
   const [stats, setStats] = useState({ activeDays: 0, blockedDates: 0, pendingRequests: 0, totalRequests: 0 });
   const [requests, setRequests] = useState([]);
   const [upcomingSlots, setUpcomingSlots] = useState([]);
+  const [earnings, setEarnings] = useState({ jobs: [], total: 0 });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Month');
   const [calMonth, setCalMonth] = useState(new Date());
@@ -30,8 +32,9 @@ export default function TechnicianDashboard() {
       fetch(`http://localhost:5000/api/availability/${techId}/hours`, { headers }).then(r => r.json()),
       fetch(`http://localhost:5000/api/availability/${techId}/unavailable`, { headers }).then(r => r.json()),
       fetch(`http://localhost:5000/api/repair-requests/list`, { headers }).then(r => r.json()),
+      fetch(`http://localhost:5000/api/repair-requests/earnings/${techId}`, { headers }).then(r => r.json()).catch(() => ({ jobs: [], total: 0 })),
     ])
-      .then(([hoursData, unavailData, requestsData]) => {
+      .then(([hoursData, unavailData, requestsData, earningsData]) => {
         const hours = hoursData.hours || [];
         const blocked = unavailData.dates || [];
         const reqs = requestsData.requests || [];
@@ -56,6 +59,7 @@ export default function TechnicianDashboard() {
         setStats({ activeDays, blockedDates: blocked.length, pendingRequests, totalRequests: reqs.length });
         setRequests(reqs.slice(0, 6));
         setUpcomingSlots(slots);
+        setEarnings({ jobs: earningsData.jobs || [], total: earningsData.total || 0 });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -110,7 +114,7 @@ export default function TechnicianDashboard() {
 
       <aside className="td-sidebar">
         <div className="td-logo">
-          <span className="td-logo-icon">⚡</span>
+          <span className="td-logo-icon"><img src={logo} alt="Fixit" className="brand-logo-img" /></span>
           <span className="td-logo-text">Fixit</span>
         </div>
 
@@ -185,24 +189,28 @@ export default function TechnicianDashboard() {
 
           <div className="td-card td-chart-card">
             <div className="td-card-header">
-              <span className="td-card-title">Requests Overview</span>
-              <button className="td-btn-outline" onClick={() => navigate('/repair-requests')}>View all →</button>
+              <span className="td-card-title">Earnings Summary</span>
+              <span className="td-earnings-total">
+                NPR {Number(earnings.total).toLocaleString()}
+              </span>
             </div>
-            <div className="td-chart">
-              <div className="td-chart-bars">
-                {barData.map(b => (
-                  <div key={b.label} className="td-bar-col">
-                    <div className="td-bar-wrap">
-                      <div
-                        className="td-bar"
-                        style={{ height: `${(b.val / maxBar) * 100}%` }}
-                      />
+            {earnings.jobs.length === 0 ? (
+              <p className="td-table-empty">No completed repairs yet</p>
+            ) : (
+              <div className="td-earnings-list">
+                {earnings.jobs.slice(0, 8).map(j => (
+                  <div key={j.id} className="td-earnings-row">
+                    <div className="td-earnings-info">
+                      <span className="td-earnings-device">{j.device_type || 'Device'}</span>
+                      <span className="td-earnings-date">{fmt(j.preferred_date)}</span>
                     </div>
-                    <span className="td-bar-label">{b.label}</span>
+                    <span className="td-earnings-amount">
+                      {j.cost ? `NPR ${Number(j.cost).toLocaleString()}` : '—'}
+                    </span>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
 
           <div className="td-right-col">
