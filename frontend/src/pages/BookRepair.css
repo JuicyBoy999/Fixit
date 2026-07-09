@@ -308,3 +308,97 @@ select.br-input option {
     min-height: 100vh;
   }
 }
+
+/* Estimate & Review Styles */
+.br-review-summary {
+  background: #1e2d45;
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.br-review-item label {
+  display: block;
+  font-size: 11px;
+  color: #8b9ab0;
+  margin-bottom: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.br-review-item span {
+  font-size: 14px;
+  color: #fff;
+}
+
+.br-estimate-box {
+  background: rgba(33, 150, 243, 0.05);
+  border: 1px dashed rgba(33, 150, 243, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.br-estimate-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2196f3;
+  margin-bottom: 16px;
+}
+
+.br-estimate-loading {
+  color: #6b7a8d;
+  font-size: 14px;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.br-estimate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.br-estimate-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.br-item-label {
+  color: #8b9ab0;
+}
+
+.br-item-amount {
+  color: #fff;
+  font-weight: 500;
+}
+
+.br-item-amount.variable {
+  color: #fbbf24;
+}
+
+.br-item-amount small {
+  margin-left: 2px;
+}
+
+.br-estimate-total {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+}
+
+.br-estimate-note {
+  font-size: 11px;
+  color: #4a5a70;
+  margin-top: 16px;
+  line-height: 1.4;
+}

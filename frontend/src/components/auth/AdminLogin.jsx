@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 
 const styles = {
@@ -110,14 +111,14 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     try {
       await login(email, password, 'admin');
-      //can redirect the user to the admin dashboard here if needed,
-      // e.g. using useNavigate() from react-router-dom.
+      navigate('/admin-panel');
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Login failed');
     }

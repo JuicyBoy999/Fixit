@@ -1,0 +1,275 @@
+.rh-page {
+  min-height: 100vh;
+  background: #0a0e1a;
+  color: #ffffff;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 32px 20px;
+}
+
+.rh-shell {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+}
+
+.rh-topbar,
+.rh-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rh-topbar {
+  margin-bottom: 34px;
+}
+
+.rh-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rh-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #38bdf8;
+  color: #0f1f3d;
+  font-weight: 900;
+}
+
+.rh-heading-row {
+  margin-bottom: 24px;
+}
+
+.rh-kicker {
+  color: #38bdf8;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.rh-heading-row h1 {
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.rh-heading-row p {
+  color: #94a3b8;
+  max-width: 620px;
+  line-height: 1.6;
+}
+
+.rh-primary,
+.rh-secondary {
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rh-primary {
+  background: #38bdf8;
+  color: #0f1f3d;
+  padding: 13px 18px;
+}
+
+.rh-secondary {
+  background: #152a4a;
+  color: #e0f2fe;
+  border: 1px solid #24456e;
+  padding: 11px 16px;
+}
+
+.rh-table-wrap,
+.rh-empty,
+.rh-state {
+  background: #111827;
+  border: 1px solid #1e2d45;
+  border-radius: 16px;
+  box-shadow: 0 22px 55px rgba(4, 12, 28, 0.28);
+}
+
+.rh-table-wrap {
+  overflow-x: auto;
+}
+
+.rh-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.rh-table th,
+.rh-table td {
+  padding: 18px 20px;
+  text-align: left;
+  border-bottom: 1px solid #1e2d45;
+}
+
+.rh-table th {
+  color: #8b9ab0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rh-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.rh-table tbody tr:hover {
+  background: #0f1623;
+}
+
+.rh-table td {
+  color: #e5eefb;
+  font-size: 14px;
+}
+
+.rh-table td strong,
+.rh-table td span {
+  display: block;
+}
+
+.rh-table td strong {
+  margin-bottom: 5px;
+}
+
+.rh-table td strong + span {
+  color: #8b9ab0;
+  line-height: 1.45;
+}
+
+.rh-status {
+  display: inline-flex;
+  width: max-content;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rh-status-pending {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fbbf24;
+}
+
+.rh-status-in_progress {
+  background: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+}
+
+.rh-status-completed {
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
+}
+
+.rh-status-cancelled {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fca5a5;
+}
+
+.rh-empty,
+.rh-state {
+  padding: 42px 24px;
+  text-align: center;
+}
+
+.rh-empty h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.rh-empty p,
+.rh-state {
+  color: #94a3b8;
+}
+
+.rh-empty p {
+  margin: 0 auto 22px;
+  max-width: 460px;
+  line-height: 1.6;
+}
+
+.rh-state-error {
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+@media (max-width: 720px) {
+  .rh-page {
+    padding: 20px 12px;
+  }
+
+  .rh-topbar,
+  .rh-heading-row {
+    align-items: stretch;
+  }
+
+  .rh-heading-row {
+    flex-direction: column;
+  }
+
+  .rh-primary,
+  .rh-secondary {
+    width: 100%;
+  }
+
+  .rh-table {
+    min-width: 0;
+  }
+
+  .rh-table thead {
+    display: none;
+  }
+
+  .rh-table,
+  .rh-table tbody,
+  .rh-table tr,
+  .rh-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .rh-table tr {
+    border-bottom: 1px solid #1e2d45;
+    padding: 12px 0;
+  }
+
+  .rh-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .rh-table td {
+    border-bottom: 0;
+    display: grid;
+    grid-template-columns: 112px 1fr;
+    gap: 12px;
+    padding: 9px 16px;
+  }
+
+  .rh-table td::before {
+    content: attr(data-label);
+    color: #8b9ab0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}

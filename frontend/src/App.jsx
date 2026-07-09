@@ -19,6 +19,11 @@ import ServiceArea from './pages/ServiceArea';
 import SetAvailability from './pages/SetAvailability';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import RepairRequests from './pages/RepairRequests';
+import RepairHistory from './pages/RepairHistory';
+import TechnicianDirectory from './pages/TechnicianDirectory';
+import TechnicianProfile from './pages/TechnicianProfile';
+import RepairRequestDetails from './pages/RepairRequestDetails';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   return (
@@ -29,13 +34,15 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin-panel" element={<AdminPanel />} />
           <Route path="/forgot-password" element={<RequestPasswordReset />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
 
           <Route path="/book" element={<BookRepair />} />
-          <Route path="/technicians" element={<BrowseTechnicians />} />
+          <Route path="/book-repair" element={<BookRepair />} />
+          <Route path="/browse-technicians" element={<BrowseTechnicians />} />
           <Route path="/calendar" element={<TechnicianCalendar />} />
           <Route path="/cancel-booking" element={<CancelBooking />} />
           <Route path="/reschedule-booking" element={<RescheduleBooking />} />
@@ -47,6 +54,10 @@ function App() {
           <Route path="/availability" element={<SetAvailability />} />
           <Route path="/technician-dashboard" element={<TechnicianDashboard />} />
           <Route path="/repair-requests" element={<RepairRequests />} />
+          <Route path="/repair-history" element={<RepairHistory />} />
+          <Route path="/technicians" element={<TechnicianDirectory />} />
+          <Route path="/technicians/repair-requests/:id" element={<RepairRequestDetails />} />
+          <Route path="/technicians/:id" element={<TechnicianProfile />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

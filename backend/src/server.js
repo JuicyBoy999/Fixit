@@ -6,8 +6,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 
-
-import userRoute from './routes/userRoute.js'; 
+import userRoute from './routes/userRoute.js';
 import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import './models/serviceAreaModel.js';
@@ -17,6 +16,10 @@ import './models/repairRequestModel.js';
 import repairRequestRoute from './routes/repairRequestRoute.js';
 import './models/notificationModel.js';
 import notificationRoute from './routes/notificationRoute.js';
+import repairRoutes from './routes/repairRoutes.js';
+import technicianRoutes from './routes/technicianRoutes.js';
+import pricingRoutes from './routes/pricingRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 
 dotenv.config();
 
@@ -31,7 +34,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: false,       // set true in production (HTTPS)
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
   },
@@ -64,18 +67,17 @@ app.get("/", (_req, res) => {
   res.send("The Fixit backend is running");
 });
 
-
 app.use("/api/auth", authRoutes);
 app.use("/api", userRoute);
 app.use("/api/repair-requests", repairRequestRoute);
 app.use("/api/admin", adminRoutes);
-
 app.use("/api/service-area", serviceAreaRoute);
-
 app.use("/api/availability", availabilityRoutes);
-
 app.use("/api/notifications", notificationRoute);
-
+app.use("/api/repair", repairRoutes);
+app.use("/api/technicians", technicianRoutes);
+app.use("/api/pricing", pricingRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", {
