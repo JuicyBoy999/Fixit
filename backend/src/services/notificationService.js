@@ -10,8 +10,7 @@ dotenv.config();
  * @param {string} deviceName - The name of the device (used to match skills).
  */
 export const getMatchingTechnicians = async (city, deviceName) => {
-  // Simple matching: city must match exactly, and deviceName should be partially matched in skills array
-  // In a real app, we might use more sophisticated fuzzy matching or categories.
+
   const result = await pool.query(
     `SELECT tp.id, u.email, tp.full_name
      FROM technician_profiles tp
@@ -29,9 +28,6 @@ export const getMatchingTechnicians = async (city, deviceName) => {
   return result.rows;
 };
 
-/**
- * Send notification emails to matching technicians.
- */
 export const notifyTechnicians = async (repair) => {
   const technicians = await getMatchingTechnicians(repair.city, repair.device_name);
   
@@ -81,9 +77,6 @@ export const notifyTechnicians = async (repair) => {
   }
 };
 
-/**
- * Send warning notification emails to user.
- */
 export const sendWarningEmail = async (email, firstName, reason) => {
   try {
     await transporter.sendMail({
@@ -122,9 +115,6 @@ export const sendWarningEmail = async (email, firstName, reason) => {
   }
 };
 
-/**
- * Send account status notification emails to users and technicians.
- */
 export const sendAccountStatusEmail = async (email, firstName, status, reason) => {
   try {
     await transporter.sendMail({
@@ -199,9 +189,6 @@ export const sendPaymentConfirmationEmail = async (customerEmail, customerName, 
   }
 };
 
-/**
- * Send technician credential verification outcome emails.
- */
 export const sendTechnicianVerificationEmail = async (email, firstName, outcome, reason = '') => {
   const approved = outcome === 'approved';
 

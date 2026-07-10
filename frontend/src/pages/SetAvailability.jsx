@@ -52,8 +52,7 @@ export default function SetAvailability() {
       })
       .catch(() => {});
 
-    // Blocked dates
-    fetch(`http://localhost:5000/api/availability/${techId}/unavailable`, { headers })
+      fetch(`http://localhost:5000/api/availability/${techId}/unavailable`, { headers })
       .then(r => r.json())
       .then(data => { if (data.dates) setUnavailDates(data.dates); })
       .catch(() => {});

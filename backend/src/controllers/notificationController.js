@@ -6,7 +6,6 @@ import {
   deleteNotification,
 } from '../models/notificationModel.js';
 
-// GET /api/notifications/:userId  — list a user's notifications
 export const fetchNotifications = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -18,7 +17,6 @@ export const fetchNotifications = async (req, res) => {
   }
 };
 
-// POST /api/notifications  — create a notification
 export const createNotification = async (req, res) => {
   try {
     const { user_id, title, message, type } = req.body;
@@ -32,7 +30,6 @@ export const createNotification = async (req, res) => {
   }
 };
 
-// PATCH /api/notifications/:id/read  — mark one as read
 export const readNotification = async (req, res) => {
   try {
     const { id } = req.params;
@@ -44,7 +41,6 @@ export const readNotification = async (req, res) => {
   }
 };
 
-// PATCH /api/notifications/:userId/read-all  — mark all of a user's as read
 export const readAllNotifications = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -55,7 +51,6 @@ export const readAllNotifications = async (req, res) => {
   }
 };
 
-// DELETE /api/notifications/:id  — dismiss (delete) a notification
 export const removeNotification = async (req, res) => {
   try {
     const { id } = req.params;

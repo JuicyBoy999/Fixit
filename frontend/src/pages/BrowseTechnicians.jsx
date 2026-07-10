@@ -4,9 +4,6 @@ import TechnicianCalendar from './TechnicianCalendar'
 
 const API = 'http://localhost:5000/api/availability/technicians'
 
-// The backend stores only a technician's name + city. Skills/rating/price/
-// availability aren't modelled yet, so we fill those display fields with
-// reasonable defaults until a technician-profile API exists.
 const COLORS = ['blue', 'purple', 'green', 'amber', 'red', 'cyan', 'pink', 'orange', 'indigo', 'teal']
 const DEFAULT_SKILLS = ['Laptop', 'Mobile', 'Desktop']
 const AVAIL_CYCLE = ['now', 'today', 'busy']

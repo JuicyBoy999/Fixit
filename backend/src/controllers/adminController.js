@@ -340,11 +340,8 @@ export const warnUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    // Record warning in database
     const warning = await messageModel.createWarning(userId, adminId, reason.trim());
 
-    // Send email notification
     await sendWarningEmail(user.email, user.first_name, reason.trim());
 
     res.json({ message: 'Warning issued successfully', warning });

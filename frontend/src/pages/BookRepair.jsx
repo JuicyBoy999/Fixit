@@ -28,7 +28,6 @@ export default function BookRepair() {
   const [address, setAddress] = useState('')
   const [photoPreview, setPhotoPreview] = useState(null)
   const [error, setError] = useState('')
-  const [done, setDone] = useState(false)
   const [saving, setSaving] = useState(false)
   const [estimate, setEstimate] = useState(null)
   const [loadingEstimate, setLoadingEstimate] = useState(false)
@@ -130,58 +129,41 @@ export default function BookRepair() {
         if (res.status === 401) navigate('/login')
         return
       }
-      setDone(true)
+
+      const payRes = await fetch(`${API}/api/payments/esewa/initiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          repairRequestId: data.request.id,
+          amount: estimate?.subtotal || 0,
+        }),
+      })
+      const payData = await payRes.json()
+      if (!payRes.ok) {
+        setError(payData.error || 'Could not start payment. Try again.')
+        return
+      }
+
+      const form = document.createElement('form')
+      form.method = 'POST'
+      form.action = payData.formUrl
+      Object.entries(payData.fields).forEach(([key, value]) => {
+        const input = document.createElement('input')
+        input.type = 'hidden'
+        input.name = key
+        input.value = value
+        form.appendChild(input)
+      })
+      document.body.appendChild(form)
+      form.submit()
     } catch {
       setError('Cannot connect to server. Make sure backend is running.')
-    } finally {
       setSaving(false)
     }
   }
 
   const today = new Date().toISOString().split('T')[0]
   const selectedTech = technicians.find(t => String(t.id) === String(technicianId))
-
-  if (done) {
-    return (
-      <div className="br-page">
-        <aside className="br-sidebar">
-          <div className="br-brand"><img src={logo} alt="Fixit" className="brand-logo-img" /> Fixit</div>
-          <div className="br-sidebar-info">
-            <h2 className="br-sidebar-heading">Booking confirmed!</h2>
-            <p className="br-sidebar-sub">Your technician will be in touch shortly to confirm the appointment.</p>
-          </div>
-          <div className="br-sidebar-steps">
-            {['Repair Details', 'Contact Info', 'Estimate & Confirm'].map((label, i) => (
-              <div key={i}>
-                {i > 0 && <div className="br-stp-line" />}
-                <div className="br-stp br-stp--done">
-                  <div className="br-stp-num">✓</div>
-                  <div><div className="br-stp-label">{label}</div></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </aside>
-        <main className="br-main">
-          <div className="br-success-wrap">
-            <div className="br-success-icon">✓</div>
-            <h1 className="br-success-heading">You are all set!</h1>
-            <p className="br-success-msg">Your repair has been booked. A certified technician will contact you shortly.</p>
-            <div className="br-confirm-box">
-              <div className="br-confirm-row"><span>Device</span><span>{deviceType}</span></div>
-              <div className="br-confirm-row"><span>City</span><span>{city}</span></div>
-              <div className="br-confirm-row"><span>Technician</span><span>{selectedTech ? `${selectedTech.first_name} ${selectedTech.last_name}` : '-'}</span></div>
-              <div className="br-confirm-row"><span>Date</span><span>{date}</span></div>
-              <div className="br-confirm-row"><span>Time</span><span>{selectedSlot}</span></div>
-              <div className="br-confirm-row"><span>Name</span><span>{name}</span></div>
-              <div className="br-confirm-row"><span>Phone</span><span>{phone}</span></div>
-            </div>
-            <button className="br-btn" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
-          </div>
-        </main>
-      </div>
-    )
-  }
 
   return (
     <div className="br-page">

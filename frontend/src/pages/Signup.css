@@ -207,6 +207,41 @@
 
 .sg-btn:hover { background: #123247; }
 
+.sg-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.25rem 0 1rem;
+  color: #8FCBE3;
+  font-size: 0.8rem;
+}
+
+.sg-divider::before,
+.sg-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #8FCBE3;
+}
+
+.sg-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1.5px solid #8FCBE3;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #16303D;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  transition: background 0.15s;
+}
+.sg-google:hover { background: #CFEEF8; }
+
 .sg-login-link {
   text-align: center;
   font-size: 0.875rem;

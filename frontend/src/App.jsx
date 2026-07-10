@@ -25,6 +25,8 @@ import TechnicianProfile from './pages/TechnicianProfile';
 import RepairRequestDetails from './pages/RepairRequestDetails';
 import AdminPanel from './pages/AdminPanel';
 import Chat from './pages/Chat';
+import OAuthCallback from './pages/OAuthCallback';
+import PaymentResult from './pages/PaymentResult';
 
 function App() {
   return (
@@ -58,6 +60,9 @@ function App() {
           <Route path="/technicians/repair-requests/:id" element={<RepairRequestDetails />} />
           <Route path="/technicians/:id" element={<TechnicianProfile />} />
           <Route path="/chat/:repairId" element={<Chat />} />
+          <Route path="/oauth-callback" element={<OAuthCallback />} />
+          <Route path="/payment/success" element={<PaymentResult status="success" />} />
+          <Route path="/payment/failure" element={<PaymentResult status="failure" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

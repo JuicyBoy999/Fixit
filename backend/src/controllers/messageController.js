@@ -2,9 +2,6 @@ import { getRepairById } from '../models/repairModel.js';
 import { getUserById } from '../models/userModel.js';
 import * as messageModel from '../models/messageModel.js';
 
-/**
- * Send a message.
- */
 export const createMessage = async (req, res) => {
   const { repairId, content } = req.body;
   const senderId = req.user.id;
@@ -19,7 +16,6 @@ export const createMessage = async (req, res) => {
       return res.status(404).json({ message: 'Repair request not found' });
     }
 
-    // Check if the user is allowed to message on this repair
     const isAdmin = req.user.role === 'admin';
     const isOwner = repair.user_id === senderId;
     const isTechnician = req.user.role === 'technician';
@@ -30,7 +26,6 @@ export const createMessage = async (req, res) => {
 
     const newMessage = await messageModel.createMessage(repairId, senderId, content.trim());
     
-    // Retrieve sender details to return with the message
     const sender = await getUserById(senderId);
     newMessage.sender_name = sender ? `${sender.first_name} ${sender.last_name}` : req.user.email;
     newMessage.sender_role = req.user.role;
@@ -42,9 +37,6 @@ export const createMessage = async (req, res) => {
   }
 };
 
-/**
- * Get all messages for a repair request.
- */
 export const getMessages = async (req, res) => {
   const { repairId } = req.params;
   const userId = req.user.id;
@@ -55,7 +47,6 @@ export const getMessages = async (req, res) => {
       return res.status(404).json({ message: 'Repair request not found' });
     }
 
-    // Auth check
     const isAdmin = req.user.role === 'admin';
     const isOwner = repair.user_id === userId;
     const isTechnician = req.user.role === 'technician';
@@ -72,9 +63,6 @@ export const getMessages = async (req, res) => {
   }
 };
 
-/**
- * Flag a message.
- */
 export const flagMessage = async (req, res) => {
   const { id } = req.params;
   const flaggedById = req.user.id;

@@ -32,7 +32,6 @@ export default function TechnicianProfile() {
         if (!techRes.ok) throw new Error(techData.message || 'Not found')
         setTechnician(techData.technician)
 
-        // load real customer reviews (from reviews table, keyed by the linked user account — may be empty)
         if (techData.technician?.user_id) {
           try {
             const token = localStorage.getItem('token')

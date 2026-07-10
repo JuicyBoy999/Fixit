@@ -54,7 +54,6 @@ export default function RescheduleBooking() {
     const token = localStorage.getItem('token')
 
     const doFetch = async () => {
-      // Try authenticated endpoint first
       if (token) {
         try {
           const res = await fetch(`${API}/mine`, { headers: { Authorization: `Bearer ${token}` } })
@@ -64,7 +63,6 @@ export default function RescheduleBooking() {
           }
         } catch {}
       }
-      // Fallback: claim + fetch by id
       if (user.id) {
         try { await fetch(`${API}/claim/${user.id}`, { method: 'POST' }) } catch {}
         try {

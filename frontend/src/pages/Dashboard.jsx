@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/image.png';
+import CancelBooking from './CancelBooking';
 import './Dashboard.css';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -17,6 +18,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ total: 0, pending: 0, accepted: 0, completed: 0 });
   const [loading, setLoading] = useState(true);
   const [calMonth, setCalMonth] = useState(new Date());
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -26,7 +29,6 @@ export default function Dashboard() {
     const token = localStorage.getItem('token');
 
     const loadBookings = async () => {
-      // Try authenticated endpoint first (uses token → always correct customer)
       try {
         const res = await fetch(`${base}/mine`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -36,7 +38,6 @@ export default function Dashboard() {
           return data.requests || [];
         }
       } catch { /* fall through to orphaned-booking claim */ }
-      // Fallback: claim orphaned bookings then fetch by customer id
       if (user.id) {
         try { await fetch(`${base}/claim/${user.id}`, { method: 'POST' }); } catch { /* ignore claim failure */ }
         try {
@@ -59,7 +60,7 @@ export default function Dashboard() {
         completed: reqs.filter(r => r.status === 'completed').length,
       });
     }).finally(() => setLoading(false));
-  }, [user, navigate]);
+  }, [user, navigate, refreshKey]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -190,7 +191,7 @@ export default function Dashboard() {
                 </div>
                 <span className="cd-action-arrow">→</span>
               </button>
-              <button className="cd-action-btn" onClick={() => navigate('/cancel-booking')}>
+              <button className="cd-action-btn" onClick={() => setShowCancelModal(true)}>
                 <div className="cd-action-icon-wrap cd-action-icon-wrap--red">✕</div>
                 <div>
                   <div className="cd-action-label">Cancel Booking</div>
@@ -310,6 +311,15 @@ export default function Dashboard() {
         </div>
 
       </main>
+
+      {showCancelModal && (
+        <CancelBooking
+          onClose={() => {
+            setShowCancelModal(false);
+            setRefreshKey(k => k + 1);
+          }}
+        />
+      )}
     </div>
   );
 }

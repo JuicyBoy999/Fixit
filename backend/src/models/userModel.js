@@ -1,5 +1,6 @@
 import pool from '../config/db.js';
 import bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 
 export const createUser = async (firstName, lastName, email, phone, city, password, role = 'user') => {
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -14,6 +15,19 @@ export const getUserByEmail = async (email) => {
   const result = await pool.query(
     "SELECT * FROM users WHERE email = $1",
     [email]
+  );
+  return result.rows[0];
+};
+
+export const findOrCreateOAuthUser = async ({ firstName, lastName, email, role = 'user' }) => {
+  const existing = await getUserByEmail(email);
+  if (existing) return existing;
+
+  const randomPassword = randomBytes(24).toString('hex');
+  const hashedPassword = await bcrypt.hash(randomPassword, 10);
+  const result = await pool.query(
+    "INSERT INTO users (first_name, last_name, email, phone, city, password, role) VALUES ($1, $2, $3, NULL, NULL, $4, $5) RETURNING *",
+    [firstName, lastName, email, hashedPassword, role]
   );
   return result.rows[0];
 };

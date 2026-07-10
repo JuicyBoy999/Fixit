@@ -42,7 +42,6 @@ export default function TechnicianAvailability() {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  // Get day name for calendar (simulate month starting on Wednesday)
   const getDayName = (dayNum) => DAYS[(dayNum + 1) % 7];
 
   const isWorkingDay = (dayNum) => {

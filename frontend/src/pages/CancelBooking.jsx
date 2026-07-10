@@ -27,8 +27,9 @@ const CANCEL_REASONS = [
   'Other',
 ]
 
-export default function CancelBooking() {
+export default function CancelBooking({ onClose } = {}) {
   const navigate = useNavigate()
+  const close = () => (onClose ? onClose() : navigate('/dashboard'))
   const [step, setStep] = useState('select')
   const [selected, setSelected] = useState(null)
   const [reason, setReason] = useState('')
@@ -90,7 +91,7 @@ export default function CancelBooking() {
   }
 
   return (
-    <div className="cb-page">
+    <div className="cb-page" onClick={e => { if (e.target === e.currentTarget) close() }}>
       <div className="cb-modal">
 
         <div className="cb-header">
@@ -101,9 +102,12 @@ export default function CancelBooking() {
               <div className="cb-subtitle">Manage your repair appointments</div>
             </div>
           </div>
-          {step === 'confirm' && (
-            <button className="cb-back" onClick={handleBack}>← Back</button>
-          )}
+          <div className="cb-header-actions">
+            {step === 'confirm' && (
+              <button className="cb-back" onClick={handleBack}>← Back</button>
+            )}
+            <button className="cb-close" onClick={close} aria-label="Close">✕</button>
+          </div>
         </div>
 
         <div className="cb-body">
@@ -229,13 +233,7 @@ export default function CancelBooking() {
                 </div>
               </div>
 
-              <div className="cb-notifs">
-                <span className="cb-notif">✉ Email sent to you</span>
-                <span className="cb-notif">🔔 Technician notified</span>
-                <span className="cb-notif">📅 Slot freed</span>
-              </div>
-
-              <button className="cb-done-btn" onClick={() => navigate('/dashboard')}>
+              <button className="cb-done-btn" onClick={close}>
                 Done
               </button>
 

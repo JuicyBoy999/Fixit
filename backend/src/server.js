@@ -3,8 +3,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import session from 'express-session';
 import passport from 'passport';
+import jwt from 'jsonwebtoken';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
+import { findOrCreateOAuthUser } from './models/userModel.js';
 
 import userRoute from './routes/userRoute.js';
 import authRoutes from './routes/authRoutes.js';
@@ -21,6 +23,7 @@ import technicianRoutes from './routes/technicianRoutes.js';
 import pricingRoutes from './routes/pricingRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 dotenv.config();
 
@@ -36,7 +39,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,       // set true in production (HTTPS)
+    secure: false,       
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
   },
@@ -53,7 +56,24 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     clientID:     process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL:  "/auth/google/callback",
-  }, (_accessToken, _refreshToken, profile, done) => done(null, profile)));
+    passReqToCallback: true,
+  }, async (req, _accessToken, _refreshToken, profile, done) => {
+    try {
+      const email = profile.emails?.[0]?.value;
+      if (!email) return done(new Error('Google account has no public email'));
+      const nameParts = (profile.displayName || '').trim().split(/\s+/);
+      const role = req.query.state === 'technician' ? 'technician' : 'user';
+      const user = await findOrCreateOAuthUser({
+        firstName: profile.name?.givenName || nameParts[0] || 'Google',
+        lastName:  profile.name?.familyName || nameParts.slice(1).join(' ') || 'User',
+        email,
+        role,
+      });
+      done(null, user);
+    } catch (err) {
+      done(err);
+    }
+  }));
 }
 
 if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
@@ -81,12 +101,35 @@ app.use("/api/technicians", technicianRoutes);
 app.use("/api/pricing", pricingRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/payments", paymentRoutes);
 
-app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-app.get("/auth/google/callback", passport.authenticate("google", {
-  successRedirect: "http://localhost:5173/dashboard",
-  failureRedirect:  "http://localhost:5173/login",
-}));
+app.get("/auth/google", (req, res, next) => {
+  const role = req.query.role === 'technician' ? 'technician' : 'user';
+  passport.authenticate("google", { scope: ["profile", "email"], state: role })(req, res, next);
+});
+
+app.get("/auth/google/callback", (req, res, next) => {
+  passport.authenticate("google", { session: false }, (err, user) => {
+    if (err || !user) {
+      console.error('Google OAuth failed:', err?.message);
+      return res.redirect("http://localhost:5173/login?error=google");
+    }
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role || 'user' },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+    const params = new URLSearchParams({
+      token,
+      id: user.id,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      role: user.role || 'user',
+    });
+    res.redirect(`http://localhost:5173/oauth-callback?${params.toString()}`);
+  })(req, res, next);
+});
 
 app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email"] }));
 app.get("/auth/facebook/callback", passport.authenticate("facebook", {
@@ -110,7 +153,6 @@ app.get("/auth/logout", (req, res) => {
   req.logout(() => res.redirect("http://localhost:5173/login"));
 });
 
-// Run DB migrations on startup
 import pool from './config/db.js';
 pool.query(`
   ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_booking_id_fkey;
@@ -118,7 +160,11 @@ pool.query(`
     FOREIGN KEY (booking_id) REFERENCES repair_requests(id) ON DELETE CASCADE;
 `).then(() => console.log('Reviews FK migration OK')).catch(() => {});
 
-// Ensure messages table exists with correct schema
+pool.query(`
+  ALTER TABLE users ALTER COLUMN phone DROP NOT NULL;
+  ALTER TABLE users ALTER COLUMN city DROP NOT NULL;
+`).then(() => console.log('Users OAuth-nullable migration OK')).catch(() => {});
+
 pool.query(`
   CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,
@@ -128,7 +174,6 @@ pool.query(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 `).then(() => console.log('Messages table OK')).catch(() => {});
-// Drop any FK on messages.repair_id that references repairs (old schema)
 pool.query(`
   DO $$
   DECLARE r RECORD;
@@ -142,7 +187,6 @@ pool.query(`
   END $$;
 `).then(() => console.log('Messages FK migration OK')).catch(() => {});
 
-// Auto-generate appointment reminders for next-day bookings (once at startup, then hourly)
 import { generateDueReminders } from './controllers/repairRequestController.js';
 const runReminders = () =>
   generateDueReminders()

@@ -1,8 +1,5 @@
 import pool from '../config/db.js';
 
-/**
- * Create a new chat message.
- */
 export const createMessage = async (repairId, senderId, content) => {
   const result = await pool.query(
     `INSERT INTO messages (repair_id, sender_id, content)
@@ -13,9 +10,6 @@ export const createMessage = async (repairId, senderId, content) => {
   return result.rows[0];
 };
 
-/**
- * Retrieve messages for a repair with sender details.
- */
 export const getMessagesByRepairId = async (repairId) => {
   const result = await pool.query(
     `SELECT m.id, m.repair_id, m.sender_id, m.content, m.flagged, m.flagged_by, m.created_at,
@@ -29,9 +23,6 @@ export const getMessagesByRepairId = async (repairId) => {
   return result.rows;
 };
 
-/**
- * Flag a message as inappropriate.
- */
 export const flagMessage = async (messageId, flaggedById) => {
   const result = await pool.query(
     `UPDATE messages
@@ -43,9 +34,6 @@ export const flagMessage = async (messageId, flaggedById) => {
   return result.rows[0];
 };
 
-/**
- * Get all flagged messages (for Admin).
- */
 export const getFlaggedMessages = async () => {
   const result = await pool.query(
     `SELECT m.id, m.repair_id, m.sender_id, m.content, m.flagged, m.flagged_by, m.created_at,
@@ -60,9 +48,6 @@ export const getFlaggedMessages = async () => {
   return result.rows;
 };
 
-/**
- * Delete a message.
- */
 export const deleteMessage = async (messageId) => {
   const result = await pool.query(
     `DELETE FROM messages WHERE id = $1 RETURNING *`,
@@ -71,9 +56,6 @@ export const deleteMessage = async (messageId) => {
   return result.rows[0];
 };
 
-/**
- * Record a user warning.
- */
 export const createWarning = async (userId, adminId, reason) => {
   const result = await pool.query(
     `INSERT INTO user_warnings (user_id, admin_id, reason)

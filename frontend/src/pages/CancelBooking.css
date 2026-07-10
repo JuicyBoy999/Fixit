@@ -1,11 +1,14 @@
 .cb-page {
-  min-height: 100vh;
-  background: #CFEEF8;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(18,50,71,0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   font-family: 'Inter', system-ui, sans-serif;
+  overflow-y: auto;
 }
 
 .cb-modal {
@@ -15,7 +18,8 @@
   overflow: hidden;
   background: #EAF7FC;
   border: 1px solid #8FCBE3;
-  box-shadow: 0 4px 24px rgba(18,50,71,0.12);
+  box-shadow: 0 12px 40px rgba(18,50,71,0.35);
+  margin: auto;
 }
 
 .cb-header {
@@ -27,6 +31,7 @@
 }
 
 .cb-header-left { display: flex; align-items: center; gap: 14px; }
+.cb-header-actions { display: flex; align-items: center; gap: 8px; }
 
 .cb-logo {
   width: 44px;
@@ -53,6 +58,20 @@
   font-family: inherit;
 }
 .cb-back:hover { background: rgba(255,255,255,.25); }
+
+.cb-close {
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+}
+.cb-close:hover { background: rgba(255,255,255,.25); }
 
 .cb-body { padding: 20px 20px 24px; background: #EAF7FC; }
 

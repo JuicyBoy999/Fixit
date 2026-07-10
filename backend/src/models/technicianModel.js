@@ -1,7 +1,5 @@
 import pool from '../config/db.js';
 
-// Ratings come from two sources: seed `technician_reviews` (keyed by technician_profiles.id)
-// and real customer `reviews` left after a completed booking (keyed by users.id, i.e. tp.user_id).
 const RATINGS_CTE = `
   SELECT technician_id AS tp_id, rating FROM technician_reviews
   UNION ALL

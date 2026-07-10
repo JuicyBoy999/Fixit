@@ -20,16 +20,13 @@ const AdminPanel = () => {
   const [accountsError, setAccountsError] = useState(null);
   const [verificationError, setVerificationError] = useState(null);
 
-  // Warning Modal State
   const [warningModalOpen, setWarningModalOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [warningReason, setWarningReason] = useState('');
   const [warningSubmitting, setWarningSubmitting] = useState(false);
 
-  // Session Timeout
   useSessionTimeout(15 * 60 * 1000);
 
-  // Protect Admin route
   useEffect(() => {
     const storedUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
     const activeUser = user || storedUser;
@@ -289,7 +286,6 @@ const AdminPanel = () => {
         throw new Error(data.message || 'Failed to delete message');
       }
 
-      // Remove from list
       setMessages(prev => prev.filter(m => m.id !== messageId));
       alert('Message deleted successfully.');
     } catch (err) {

@@ -73,7 +73,6 @@ export default function Profile() {
         return
       }
 
-      // Update localStorage
       const updated = { ...storedUser, firstName, lastName, email, phone, city }
       localStorage.setItem('user', JSON.stringify(updated))
       setSuccess(true)

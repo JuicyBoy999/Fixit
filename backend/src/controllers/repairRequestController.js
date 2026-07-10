@@ -39,6 +39,29 @@ export const getRepairRequestById = async (req, res) => {
   }
 };
 
+export const notifyTechniciansOfNewRequest = async (booking) => {
+  const { device_type, customer_area, preferred_date } = booking;
+  try {
+    const { rows: techs } = await pool.query(
+      `SELECT id FROM users WHERE role = 'technician' AND LOWER(city) = LOWER($1)`,
+      [customer_area]
+    );
+    const notifyList = techs.length > 0 ? techs : (
+      await pool.query(`SELECT id FROM users WHERE role = 'technician'`)
+    ).rows;
+    for (const tech of notifyList) {
+      await addNotification(
+        tech.id,
+        'New repair request nearby',
+        `A customer in ${customer_area} has requested ${device_type} repair for ${preferred_date}. Check your repair requests to accept.`,
+        'info'
+      );
+    }
+  } catch (err) {
+    console.error('[NOTIFY TECHNICIANS] failed:', err.message);
+  }
+};
+
 export const createRepairRequest = async (req, res) => {
   try {
     const { technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area } = req.body;
@@ -64,31 +87,9 @@ export const createRepairRequest = async (req, res) => {
       await addNotification(
         customer_id,
         'Booking received',
-        `We received your ${device_type} repair request for ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''}. A technician will confirm shortly.`,
+        `We received your ${device_type} repair request for ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''}. Complete payment to confirm your slot.`,
         'info'
       );
-    }
-
-    // US-15: notify technicians in the same city (or all technicians if city not matched)
-    try {
-      const { rows: techs } = await pool.query(
-        `SELECT id FROM users WHERE role = 'technician' AND LOWER(city) = LOWER($1)`,
-        [customer_area]
-      );
-      // Fallback: notify all technicians if city query returns none
-      const notifyList = techs.length > 0 ? techs : (
-        await pool.query(`SELECT id FROM users WHERE role = 'technician'`)
-      ).rows;
-      for (const tech of notifyList) {
-        await addNotification(
-          tech.id,
-          'New repair request nearby',
-          `A customer in ${customer_area} has requested ${device_type} repair for ${preferred_date}. Check your repair requests to accept.`,
-          'info'
-        );
-      }
-    } catch (err) {
-      console.error('[CREATE BOOKING] technician notification failed:', err.message);
     }
 
     res.status(201).json({ success: true, request: rows[0] });
@@ -107,7 +108,6 @@ export const updateRepairRequestStatus = async (req, res) => {
       return res.status(400).json({ error: `Status must be one of: ${allowed.join(', ')}` });
     }
 
-    // Only set technician_id when accepting/confirming — don't overwrite on decline
     const setTech = !['declined'].includes(status);
     const { rows } = await pool.query(
       setTech
@@ -138,7 +138,6 @@ export const updateRepairRequestStatus = async (req, res) => {
   }
 };
 
-// Technician earnings: completed repairs assigned to this tech
 export const getEarnings = async (req, res) => {
   try {
     const techId = parseInt(req.params.techId, 10);
@@ -159,7 +158,6 @@ export const getEarnings = async (req, res) => {
   }
 };
 
-// Simple in-app chat for a repair_request
 export const getRepairMessages = async (req, res) => {
   try {
     const { id } = req.params;
@@ -189,7 +187,6 @@ export const postRepairMessage = async (req, res) => {
       [id, senderId, content.trim()]
     );
     const msg = rows[0];
-    // Notify the other party
     const { rows: repairRows } = await pool.query(`SELECT * FROM repair_requests WHERE id = $1`, [id]);
     if (repairRows.length) {
       const repair = repairRows[0];
@@ -204,7 +201,6 @@ export const postRepairMessage = async (req, res) => {
   }
 };
 
-// Claim any orphaned (customer_id = NULL) bookings for this customer
 export const claimOrphanedBookings = async (req, res) => {
   try {
     const customerId = parseInt(req.params.customerId, 10);
@@ -220,7 +216,6 @@ export const claimOrphanedBookings = async (req, res) => {
   }
 };
 
-// Authenticated: list bookings for the logged-in customer (uses token, not URL param)
 export const listMyBookings = async (req, res) => {
   try {
     const customerId = req.user?.id;
@@ -250,7 +245,6 @@ export const listMyBookings = async (req, res) => {
   }
 };
 
-// List all bookings that belong to one customer (for cancel / reschedule screens)
 export const listMyRepairRequests = async (req, res) => {
   try {
     const customerId = parseInt(req.params.customerId, 10);
@@ -272,9 +266,6 @@ export const listMyRepairRequests = async (req, res) => {
   }
 };
 
-// Creates reminder notifications for appointments happening tomorrow.
-// Idempotent: each booking is only reminded once (reminder_sent flag).
-// Reusable by both the scheduled timer and the manual trigger endpoint.
 export const generateDueReminders = async () => {
   const { rows } = await pool.query(
     `SELECT * FROM repair_requests
@@ -296,7 +287,6 @@ export const generateDueReminders = async () => {
   return rows.length;
 };
 
-// POST /api/repair-requests/run-reminders — manual trigger (also runs on a timer)
 export const runAppointmentReminders = async (req, res) => {
   try {
     const sent = await generateDueReminders();
@@ -306,7 +296,6 @@ export const runAppointmentReminders = async (req, res) => {
   }
 };
 
-// Upcoming bookings used by the Appointment Reminder page
 export const getUpcomingReminders = async (req, res) => {
   try {
     const { customerId } = req.params;
@@ -324,7 +313,6 @@ export const getUpcomingReminders = async (req, res) => {
   }
 };
 
-// Cancel a booking (Cancel Booking page)
 export const cancelRepairRequest = async (req, res) => {
   try {
     const { id } = req.params;
@@ -356,7 +344,6 @@ export const cancelRepairRequest = async (req, res) => {
   }
 };
 
-// Reschedule a booking (Reschedule Booking page)
 export const rescheduleRepairRequest = async (req, res) => {
   try {
     const { id } = req.params;

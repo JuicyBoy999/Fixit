@@ -64,9 +64,9 @@
   width: 100%;
 }
 
-.td-nav-item:hover { background: #CFEEF8; color: #16303D; }
+.td-nav-item:hover { background: #2E86AB; color: #fff; }
 
-.td-nav-item--active { background: #CFEEF8; color: #16303D; font-weight: 600; }
+.td-nav-item--active { background: #2E86AB; color: #fff; font-weight: 600; }
 
 .td-nav-badge {
   background: #2E86AB;
