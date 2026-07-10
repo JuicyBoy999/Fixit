@@ -24,6 +24,11 @@ import pricingRoutes from './routes/pricingRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import './models/categoryModel.js';
+import categoryRoute from './routes/categoryRoute.js';
+import analyticsRoute from './routes/analyticsRoute.js';
+import leaderboardRoute from './routes/leaderboardRoute.js';
+import directoryRoute from './routes/directoryRoute.js';
 
 dotenv.config();
 
@@ -102,6 +107,10 @@ app.use("/api/pricing", pricingRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use('/api/categories', categoryRoute);
+app.use('/api/analytics', analyticsRoute);
+app.use('/api/leaderboard', leaderboardRoute);
+app.use('/api/directory', directoryRoute);
 
 app.get("/auth/google", (req, res, next) => {
   const role = req.query.role === 'technician' ? 'technician' : 'user';

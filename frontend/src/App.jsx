@@ -9,6 +9,7 @@ import BrowseTechnicians from './pages/BrowseTechnicians';
 import TechnicianCalendar from './pages/TechnicianCalendar';
 import { AuthProvider } from './context/AuthContext';
 import AdminLogin from './components/auth/AdminLogin';
+import ProtectedAdminRoute from './components/auth/ProtectedAdminRoute';
 import RequestPasswordReset from './pages/RequestPasswordReset';
 import ResetPassword from './pages/ResetPassword';
 import CancelBooking from './pages/CancelBooking';
@@ -27,6 +28,10 @@ import AdminPanel from './pages/AdminPanel';
 import Chat from './pages/Chat';
 import OAuthCallback from './pages/OAuthCallback';
 import PaymentResult from './pages/PaymentResult';
+import AdminCategories from './pages/AdminCategories';
+import AdminLeaderboard from './pages/AdminLeaderboard';
+import AdminRevenue from './pages/AdminRevenue';
+import AdminDirectory from './pages/AdminDirectory';
 
 function App() {
   return (
@@ -37,7 +42,13 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin-panel" element={<AdminPanel />} />
+          <Route element={<ProtectedAdminRoute />}>
+            <Route path="/admin-panel" element={<AdminPanel />} />
+            <Route path="/admin/categories" element={<AdminCategories />} />
+            <Route path="/admin/leaderboard" element={<AdminLeaderboard />} />
+            <Route path="/admin/revenue" element={<AdminRevenue />} />
+            <Route path="/admin/directory" element={<AdminDirectory />} />
+          </Route>
           <Route path="/forgot-password" element={<RequestPasswordReset />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />

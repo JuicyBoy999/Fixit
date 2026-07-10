@@ -12,18 +12,18 @@ const useSessionTimeout = (timeout = 15 * 60 * 1000) => {
       timer = setTimeout(() => {
         logout();
         alert('Session expired due to inactivity');
+        window.location.assign('/admin-login');
       }, timeout);
     };
 
-    window.addEventListener('mousemove', resetTimer);
-    window.addEventListener('keydown', resetTimer);
+    const events = ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'];
+    events.forEach(event => window.addEventListener(event, resetTimer, { passive: true }));
 
     resetTimer();
 
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('mousemove', resetTimer);
-      window.removeEventListener('keydown', resetTimer);
+      events.forEach(event => window.removeEventListener(event, resetTimer));
     };
   }, [logout, timeout]);
 };
