@@ -124,10 +124,6 @@ export default function Dashboard() {
         <div className="cd-topbar">
           <h1 className="cd-page-title">Dashboard</h1>
           <div className="cd-topbar-right">
-            <div className="cd-search">
-              <span className="cd-search-icon">🔍</span>
-              <input className="cd-search-input" placeholder="Search..." />
-            </div>
             <button className="cd-notif-btn" onClick={() => navigate('/notifications')}>🔔</button>
             <div className="cd-avatar">{(user?.firstName?.[0] || 'U').toUpperCase()}</div>
           </div>

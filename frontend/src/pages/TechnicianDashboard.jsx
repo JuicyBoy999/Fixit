@@ -141,10 +141,6 @@ export default function TechnicianDashboard() {
         <div className="td-topbar">
           <h1 className="td-page-title">Dashboard</h1>
           <div className="td-topbar-right">
-            <div className="td-search">
-              <span className="td-search-icon">🔍</span>
-              <input className="td-search-input" placeholder="Search..." />
-            </div>
             <div className="td-avatar">{(user?.firstName?.[0] || 'T').toUpperCase()}</div>
           </div>
         </div>

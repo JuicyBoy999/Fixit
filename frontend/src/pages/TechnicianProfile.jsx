@@ -10,7 +10,7 @@ function Stars({ rating }) {
   return (
     <span style={{ display: 'inline-flex', gap: 2 }}>
       {[1,2,3,4,5].map(i => (
-        <span key={i} style={{ color: i <= r ? '#f59e0b' : '#d1d5db', fontSize: '1rem' }}>★</span>
+        <span key={i} style={{ color: i <= r ? '#f59e0b' : '#8FCBE3', fontSize: '1rem' }}>★</span>
       ))}
     </span>
   )

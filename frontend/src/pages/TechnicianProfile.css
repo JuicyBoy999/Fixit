@@ -1,7 +1,7 @@
 .tp-page {
   min-height: 100vh;
-  background: #123247;
-  color: #ffffff;
+  background: #EAF7FC;
+  color: #16303D;
   font-family: 'Segoe UI', system-ui, sans-serif;
   padding: 32px 20px;
 }
@@ -31,7 +31,7 @@
   gap: 12px;
   border: 0;
   background: transparent;
-  color: #ffffff;
+  color: #16303D;
   font: inherit;
   font-size: 20px;
   font-weight: 800;
@@ -42,8 +42,8 @@
 .tp-avatar {
   display: grid;
   place-items: center;
-  background: #38bdf8;
-  color: #16303D;
+  background: #2E86AB;
+  color: #fff;
   font-weight: 900;
 }
 
@@ -58,7 +58,7 @@
 }
 
 .tp-kicker {
-  color: #38bdf8;
+  color: #2E86AB;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -71,6 +71,7 @@
   font-size: clamp(30px, 5vw, 46px);
   line-height: 1;
   margin-bottom: 12px;
+  color: #16303D;
 }
 
 .tp-heading-row p,
@@ -93,20 +94,30 @@
   font: inherit;
   font-weight: 800;
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .tp-primary {
   width: 100%;
-  background: #38bdf8;
-  color: #16303D;
+  background: #2E86AB;
+  color: #fff;
   padding: 13px 18px;
 }
 
+.tp-primary:hover {
+  background: #123247;
+}
+
 .tp-secondary {
-  background: #2E86AB;
-  color: #EAF7FC;
+  background: transparent;
+  color: #16303D;
   border: 1px solid #8FCBE3;
   padding: 11px 16px;
+}
+
+.tp-secondary:hover {
+  border-color: #2E86AB;
+  background: #CFEEF8;
 }
 
 .tp-grid {
@@ -119,12 +130,11 @@
 .tp-panel,
 .tp-profile-hero,
 .tp-state,
-.tp-empty,
-.tp-stats {
-  background: #2E86AB;
+.tp-empty {
+  background: #CFEEF8;
   border: 1px solid #8FCBE3;
   border-radius: 16px;
-  box-shadow: 0 22px 55px rgba(18, 50, 71, 0.28);
+  box-shadow: 0 4px 20px rgba(18, 50, 71, 0.06);
 }
 
 .tp-card {
@@ -154,6 +164,7 @@
 .tp-panel h2 {
   font-size: 20px;
   margin-bottom: 6px;
+  color: #16303D;
 }
 
 .tp-card-header p {
@@ -185,14 +196,14 @@
 }
 
 .tp-meta-row span {
-  background: rgba(56, 189, 248, 0.12);
-  color: #7dd3fc;
+  background: rgba(46, 134, 171, 0.12);
+  color: #2E86AB;
   padding: 6px 10px;
 }
 
 .tp-chip {
-  background: #2E86AB;
-  color: #EAF7FC;
+  background: #A3D8EC;
+  color: #16303D;
   padding: 7px 10px;
 }
 
@@ -211,12 +222,14 @@
 }
 
 .tp-state-error {
-  color: #fca5a5;
-  border-color: rgba(248, 113, 113, 0.35);
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fca5a5;
 }
 
 .tp-empty h2 {
   margin-bottom: 10px;
+  color: #16303D;
 }
 
 .tp-empty p {
@@ -243,13 +256,13 @@
 .tp-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
+  gap: 12px;
   margin: 18px 0;
-  overflow: hidden;
 }
 
 .tp-stats div {
-  background: #123247;
+  background: #2E86AB;
+  border-radius: 12px;
   padding: 20px;
 }
 
@@ -261,10 +274,11 @@
 .tp-stats strong {
   font-size: 28px;
   margin-bottom: 4px;
+  color: #fff;
 }
 
 .tp-stats span {
-  color: #4E7182;
+  color: #CFEEF8;
   font-size: 13px;
   font-weight: 700;
 }
@@ -288,7 +302,7 @@
 
 .tp-cert,
 .tp-review {
-  background: #123247;
+  background: #EAF7FC;
   border: 1px solid #8FCBE3;
   border-radius: 12px;
   padding: 14px;
@@ -302,7 +316,7 @@
 
 .tp-cert-badge {
   background: rgba(34, 197, 94, 0.16);
-  color: #86efac;
+  color: #15803d;
   padding: 8px 10px;
 }
 
@@ -313,6 +327,11 @@
   display: block;
 }
 
+.tp-cert strong,
+.tp-review strong {
+  color: #16303D;
+}
+
 .tp-cert span,
 .tp-review span {
   color: #4E7182;
@@ -321,7 +340,7 @@
 }
 
 .tp-review p {
-  color: #EAF7FC;
+  color: #16303D;
   line-height: 1.55;
   margin-top: 10px;
 }
