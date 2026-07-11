@@ -60,6 +60,9 @@ export default function Dashboard() {
         completed: reqs.filter(r => r.status === 'completed').length,
       });
     }).finally(() => setLoading(false));
+
+    const interval = setInterval(() => setRefreshKey(k => k + 1), 8000);
+    return () => clearInterval(interval);
   }, [user, navigate, refreshKey]);
 
   const handleLogout = () => {
@@ -288,11 +291,13 @@ export default function Dashboard() {
                 <th>Technician</th>
                 <th>Preferred Date</th>
                 <th>Status</th>
+                <th>Cost</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {requests.length === 0 ? (
-                <tr><td colSpan={5} className="cd-table-empty">No repair requests yet — <button className="cd-link" onClick={() => navigate('/book-repair')}>book your first repair</button></td></tr>
+                <tr><td colSpan={7} className="cd-table-empty">No repair requests yet — <button className="cd-link" onClick={() => navigate('/book-repair')}>book your first repair</button></td></tr>
               ) : requests.map(r => (
                 <tr key={r.id}>
                   <td>{r.device_type || '—'}</td>
@@ -300,6 +305,8 @@ export default function Dashboard() {
                   <td>{r.technician_first_name ? `${r.technician_first_name} ${r.technician_last_name}` : 'Not assigned'}</td>
                   <td>{fmt(r.preferred_date)}</td>
                   <td><span className={`cd-badge cd-badge--${r.status}`}>{r.status}</span></td>
+                  <td>{(r.cost || r.amount) ? `NPR ${Number(r.cost || r.amount).toLocaleString()}` : '—'}</td>
+                  <td>{r.status === 'completed' && <button className="cd-link" onClick={() => navigate(`/invoice/${r.id}`)}>Invoice</button>}</td>
                 </tr>
               ))}
             </tbody>

@@ -253,7 +253,7 @@ const AdminPanel = () => {
       : document?.url || document?.href || document?.path || '';
 
     if (!rawUrl) return '';
-    if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
+    if (/^(https?|data):/i.test(rawUrl)) return rawUrl;
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     return `${API_URL}${rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`}`;

@@ -12,7 +12,7 @@ export default function TechnicianDashboard() {
   const [stats, setStats] = useState({ activeDays: 0, blockedDates: 0, pendingRequests: 0, totalRequests: 0 });
   const [requests, setRequests] = useState([]);
   const [upcomingSlots, setUpcomingSlots] = useState([]);
-  const [earnings, setEarnings] = useState({ jobs: [], total: 0 });
+  const [earnings, setEarnings] = useState({ jobs: [], total: 0, pending: 0, pendingJobs: [] });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Month');
   const [calMonth, setCalMonth] = useState(new Date());
@@ -32,7 +32,7 @@ export default function TechnicianDashboard() {
       fetch(`http://localhost:5000/api/availability/${techId}/hours`, { headers }).then(r => r.json()),
       fetch(`http://localhost:5000/api/availability/${techId}/unavailable`, { headers }).then(r => r.json()),
       fetch(`http://localhost:5000/api/repair-requests/list`, { headers }).then(r => r.json()),
-      fetch(`http://localhost:5000/api/repair-requests/earnings/${techId}`, { headers }).then(r => r.json()).catch(() => ({ jobs: [], total: 0 })),
+      fetch(`http://localhost:5000/api/repair-requests/earnings/${techId}`, { headers }).then(r => r.json()).catch(() => ({ jobs: [], total: 0, pending: 0, pendingJobs: [] })),
     ])
       .then(([hoursData, unavailData, requestsData, earningsData]) => {
         const hours = hoursData.hours || [];
@@ -59,7 +59,12 @@ export default function TechnicianDashboard() {
         setStats({ activeDays, blockedDates: blocked.length, pendingRequests, totalRequests: reqs.length });
         setRequests(reqs.slice(0, 6));
         setUpcomingSlots(slots);
-        setEarnings({ jobs: earningsData.jobs || [], total: earningsData.total || 0 });
+        setEarnings({
+          jobs: earningsData.jobs || [],
+          total: earningsData.total || 0,
+          pending: earningsData.pending || 0,
+          pendingJobs: earningsData.pendingJobs || [],
+        });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -190,6 +195,9 @@ export default function TechnicianDashboard() {
                 NPR {Number(earnings.total).toLocaleString()}
               </span>
             </div>
+            <p className="td-table-empty" style={{ padding: '0 0 0.75rem', textAlign: 'left' }}>
+              Pending (not yet completed): <strong>NPR {Number(earnings.pending).toLocaleString()}</strong>
+            </p>
             {earnings.jobs.length === 0 ? (
               <p className="td-table-empty">No completed repairs yet</p>
             ) : (
@@ -201,7 +209,7 @@ export default function TechnicianDashboard() {
                       <span className="td-earnings-date">{fmt(j.preferred_date)}</span>
                     </div>
                     <span className="td-earnings-amount">
-                      {j.cost ? `NPR ${Number(j.cost).toLocaleString()}` : '—'}
+                      {(j.cost || j.amount) ? `NPR ${Number(j.cost || j.amount).toLocaleString()}` : '—'}
                     </span>
                   </div>
                 ))}

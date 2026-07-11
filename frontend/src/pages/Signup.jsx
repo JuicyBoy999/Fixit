@@ -15,12 +15,32 @@ export default function Signup() {
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [credentialFile, setCredentialFile] = useState(null)
+  const [credentialFileName, setCredentialFileName] = useState('')
 
   function handlePhone(e) {
     const val = e.target.value.replace(/\D/g, '')
     if (val.length <= 10) {
       setPhone(val)
     }
+  }
+
+  function handleCredentialFile(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'application/pdf'].includes(file.type)) {
+      setError('Only JPG, PNG, or PDF files are supported for credentials.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Credential file must be under 5 MB.')
+      return
+    }
+    setError('')
+    const reader = new FileReader()
+    reader.onload = ev => setCredentialFile(ev.target.result)
+    reader.readAsDataURL(file)
+    setCredentialFileName(file.name)
   }
 
   async function handleSubmit(e) {
@@ -46,7 +66,7 @@ export default function Signup() {
       const res = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, email, phone, city, password, role }),
+        body: JSON.stringify({ firstName, lastName, email, phone, city, password, role, credentialDocument: credentialFile }),
       })
 
       const data = await res.json()
@@ -175,6 +195,20 @@ export default function Signup() {
               </select>
             </div>
           </div>
+
+          {role === 'technician' && (
+            <div className="sg-field">
+              <label>Certification / Credential {credentialFileName && `— ${credentialFileName}`}</label>
+              <div className="sg-wrap">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,application/pdf"
+                  onChange={handleCredentialFile}
+                />
+              </div>
+              <small className="sg-hint">JPG, PNG, or PDF, up to 5 MB. Your account will be marked "Pending Verification" until an admin reviews it.</small>
+            </div>
+          )}
 
           <div className="sg-field">
             <label>PASSWORD</label>

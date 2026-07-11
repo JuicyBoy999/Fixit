@@ -1,5 +1,9 @@
 import pool from '../config/db.js';
 import { addNotification } from '../models/notificationModel.js';
+import { getSlotsForDate } from '../models/availabilityModel.js';
+import { sendBookingStatusEmail } from '../services/notificationService.js';
+
+const CHAT_ENABLED_STATUSES = ['confirmed', 'in_route', 'in_progress', 'completed'];
 
 export const listRepairRequests = async (req, res) => {
   try {
@@ -29,7 +33,15 @@ export const getRepairRequestById = async (req, res) => {
   try {
     const { id } = req.params;
     const { rows } = await pool.query(
-      `SELECT * FROM repair_requests WHERE id = $1`,
+      `SELECT r.*,
+              u.first_name  AS technician_first_name,
+              u.last_name   AS technician_last_name,
+              cu.first_name AS customer_first_name,
+              cu.last_name  AS customer_last_name
+       FROM repair_requests r
+       LEFT JOIN users u  ON u.id  = r.technician_id
+       LEFT JOIN users cu ON cu.id = r.customer_id
+       WHERE r.id = $1`,
       [id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Request not found' });
@@ -64,7 +76,7 @@ export const notifyTechniciansOfNewRequest = async (booking) => {
 
 export const createRepairRequest = async (req, res) => {
   try {
-    const { technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area } = req.body;
+    const { technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area, address } = req.body;
     const customer_id = req.user?.id || req.body.customer_id || null;
 
     console.log('[CREATE BOOKING] customer_id:', customer_id, '| technician_id:', technician_id, '| device:', device_type, '| req.user:', req.user?.id);
@@ -73,15 +85,37 @@ export const createRepairRequest = async (req, res) => {
       return res.status(400).json({ error: 'device_type, preferred_date and customer_area are required' });
     }
 
+    if (fault_description && fault_description.length > 500) {
+      return res.status(400).json({ error: 'fault_description must be 500 characters or fewer' });
+    }
+
+    if (technician_id && preferred_time) {
+      const slots = await getSlotsForDate(technician_id, preferred_date);
+      const slot = slots.find(s => s.time === preferred_time);
+      if (!slot || !slot.available) {
+        return res.status(409).json({ error: 'That slot is no longer available for this technician. Please choose another time.' });
+      }
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO repair_requests
-        (customer_id, technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        (customer_id, technician_id, device_type, fault_description, photo_url, preferred_date, preferred_time, customer_area, address)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING *`,
-      [customer_id, technician_id, device_type, fault_description, photo_url || null, preferred_date, preferred_time || null, customer_area]
+      [customer_id, technician_id, device_type, fault_description, photo_url || null, preferred_date, preferred_time || null, customer_area, address || null]
     );
 
-    console.log('[CREATE BOOKING] Saved row id:', rows[0]?.id, '| customer_id in DB:', rows[0]?.customer_id, '| technician_id in DB:', rows[0]?.technician_id);
+    const booking = rows[0];
+    console.log('[CREATE BOOKING] Saved row id:', booking?.id, '| customer_id in DB:', booking?.customer_id, '| technician_id in DB:', booking?.technician_id);
+
+    if (technician_id) {
+      await addNotification(
+        technician_id,
+        'New repair request',
+        `A customer in ${customer_area} has requested ${device_type} repair for ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''}. Check your repair requests to accept.`,
+        'info'
+      );
+    }
 
     if (customer_id) {
       await addNotification(
@@ -90,9 +124,28 @@ export const createRepairRequest = async (req, res) => {
         `We received your ${device_type} repair request for ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''}. Complete payment to confirm your slot.`,
         'info'
       );
+
+      try {
+        const { rows: customerRows } = await pool.query('SELECT email, first_name FROM users WHERE id = $1', [customer_id]);
+        const customer = customerRows[0];
+        let technicianName = 'your technician';
+        if (technician_id) {
+          const { rows: techRows } = await pool.query('SELECT first_name, last_name FROM users WHERE id = $1', [technician_id]);
+          if (techRows[0]) technicianName = `${techRows[0].first_name} ${techRows[0].last_name}`;
+        }
+        if (customer?.email) {
+          sendBookingStatusEmail(
+            customer.email,
+            customer.first_name,
+            'Booking Received — FixIt',
+            'We received your repair request',
+            `your ${device_type} repair request for ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''} with ${technicianName} has been received${address ? ` at ${address}` : ''}. Complete payment to confirm your slot.`
+          ).catch(() => {});
+        }
+      } catch { /* email is best-effort */ }
     }
 
-    res.status(201).json({ success: true, request: rows[0] });
+    res.status(201).json({ success: true, request: booking });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -130,6 +183,24 @@ export const updateRepairRequestStatus = async (req, res) => {
       };
       const n = notifMap[status];
       if (n) await addNotification(booking.customer_id, n.title, n.msg, n.type);
+
+      if (status === 'accepted') {
+        try {
+          const { rows: customerRows } = await pool.query('SELECT email, first_name FROM users WHERE id = $1', [booking.customer_id]);
+          const customer = customerRows[0];
+          if (customer?.email) {
+            const { rows: techRows } = await pool.query('SELECT first_name, last_name FROM users WHERE id = $1', [req.user.id]);
+            const technicianName = techRows[0] ? `${techRows[0].first_name} ${techRows[0].last_name}` : 'Your technician';
+            sendBookingStatusEmail(
+              customer.email,
+              customer.first_name,
+              'Booking Confirmed — FixIt',
+              'Your repair booking is confirmed',
+              `${technicianName} has accepted your ${booking.device_type} repair for ${booking.preferred_date}${booking.preferred_time ? ' at ' + booking.preferred_time : ''}${booking.address ? ` at ${booking.address}` : ''}.`
+            ).catch(() => {});
+          }
+        } catch { /* email is best-effort */ }
+      }
     }
 
     res.json({ success: true, ...booking });
@@ -141,28 +212,57 @@ export const updateRepairRequestStatus = async (req, res) => {
 export const getEarnings = async (req, res) => {
   try {
     const techId = parseInt(req.params.techId, 10);
-    if (isNaN(techId)) return res.json({ jobs: [], total: 0 });
+    if (isNaN(techId)) return res.json({ jobs: [], total: 0, pending: 0, pendingJobs: [] });
     const { rows } = await pool.query(
-      `SELECT r.id, r.device_type, r.preferred_date, r.fault_description,
-              r.cost, u.first_name AS customer_first_name, u.last_name AS customer_last_name
+      `SELECT r.id, r.device_type, r.preferred_date, r.fault_description, r.status,
+              r.cost, r.amount, u.first_name AS customer_first_name, u.last_name AS customer_last_name
        FROM repair_requests r
        LEFT JOIN users u ON u.id = r.customer_id
-       WHERE r.technician_id = $1 AND r.status = 'completed'
+       WHERE r.technician_id = $1 AND r.status IN ('completed', 'accepted', 'confirmed', 'in_route', 'in_progress')
        ORDER BY r.preferred_date DESC`,
       [techId]
     );
-    const total = rows.reduce((sum, j) => sum + (Number(j.cost) || 0), 0);
-    res.json({ jobs: rows, total });
+    const jobs = rows.filter(j => j.status === 'completed');
+    const pendingJobs = rows.filter(j => j.status !== 'completed');
+    const total = jobs.reduce((sum, j) => sum + (Number(j.cost || j.amount) || 0), 0);
+    const pending = pendingJobs.reduce((sum, j) => sum + (Number(j.cost || j.amount) || 0), 0);
+    res.json({ jobs, total, pending, pendingJobs });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+async function authorizeChatAccess(req, id) {
+  const { rows } = await pool.query(`SELECT * FROM repair_requests WHERE id = $1`, [id]);
+  if (!rows.length) return { error: 404, message: 'Request not found' };
+  const repair = rows[0];
+
+  const userId = req.user?.id;
+  const isAdmin = req.user?.role === 'admin';
+  const isParty = repair.customer_id === userId || repair.technician_id === userId;
+  if (!isAdmin && !isParty) return { error: 403, message: 'Access denied' };
+
+  if (!isAdmin && !CHAT_ENABLED_STATUSES.includes(repair.status)) {
+    return { error: 403, message: 'Chat is only available once the booking is confirmed' };
+  }
+
+  return { repair };
+}
+
 export const getRepairMessages = async (req, res) => {
   try {
     const { id } = req.params;
+    const auth = await authorizeChatAccess(req, id);
+    if (auth.error) return res.status(auth.error).json({ error: auth.message });
+
+    await pool.query(
+      `UPDATE messages SET read_at = CURRENT_TIMESTAMP
+       WHERE repair_id = $1 AND sender_id != $2 AND read_at IS NULL`,
+      [id, req.user.id]
+    );
+
     const { rows } = await pool.query(
-      `SELECT m.id, m.sender_id, m.content, m.created_at,
+      `SELECT m.id, m.sender_id, m.content, m.created_at, m.read_at,
               (u.first_name || ' ' || u.last_name) AS sender_name, u.role AS sender_role
        FROM messages m
        JOIN users u ON u.id = m.sender_id
@@ -182,18 +282,19 @@ export const postRepairMessage = async (req, res) => {
     const { content } = req.body;
     const senderId = req.user?.id;
     if (!content?.trim() || !senderId) return res.status(400).json({ error: 'Content required' });
+
+    const auth = await authorizeChatAccess(req, id);
+    if (auth.error) return res.status(auth.error).json({ error: auth.message });
+
     const { rows } = await pool.query(
       `INSERT INTO messages (repair_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *`,
       [id, senderId, content.trim()]
     );
     const msg = rows[0];
-    const { rows: repairRows } = await pool.query(`SELECT * FROM repair_requests WHERE id = $1`, [id]);
-    if (repairRows.length) {
-      const repair = repairRows[0];
-      const otherId = repair.customer_id === senderId ? repair.technician_id : repair.customer_id;
-      if (otherId) {
-        await addNotification(otherId, 'New message', `You have a new message about your ${repair.device_type} repair.`, 'info');
-      }
+    const repair = auth.repair;
+    const otherId = repair.customer_id === senderId ? repair.technician_id : repair.customer_id;
+    if (otherId) {
+      await addNotification(otherId, 'New message', `You have a new message about your ${repair.device_type} repair.`, 'info');
     }
     res.status(201).json({ message: msg });
   } catch (err) {
@@ -267,24 +368,43 @@ export const listMyRepairRequests = async (req, res) => {
 };
 
 export const generateDueReminders = async () => {
-  const { rows } = await pool.query(
+  const { rows: dayOut } = await pool.query(
     `SELECT * FROM repair_requests
      WHERE preferred_date = CURRENT_DATE + INTERVAL '1 day'
        AND status NOT IN ('cancelled', 'declined')
        AND reminder_sent = FALSE`
   );
-  for (const b of rows) {
-    if (!b.customer_id) continue;
+  for (const b of dayOut) {
+    if (!b.technician_id) continue;
     const dateStr = new Date(b.preferred_date).toISOString().split('T')[0];
     await addNotification(
-      b.customer_id,
+      b.technician_id,
       'Appointment reminder',
-      `Reminder: your ${b.device_type} repair is tomorrow (${dateStr})${b.preferred_time ? ' at ' + b.preferred_time : ''}.`,
+      `Reminder: your ${b.device_type} repair appointment is tomorrow (${dateStr})${b.preferred_time ? ' at ' + b.preferred_time : ''}.`,
       'warning'
     );
     await pool.query(`UPDATE repair_requests SET reminder_sent = TRUE WHERE id = $1`, [b.id]);
   }
-  return rows.length;
+
+  const { rows: hourOut } = await pool.query(
+    `SELECT * FROM repair_requests
+     WHERE status NOT IN ('cancelled', 'declined')
+       AND reminder_sent_1h = FALSE
+       AND preferred_time IS NOT NULL
+       AND (preferred_date + preferred_time::time) BETWEEN NOW() AND NOW() + INTERVAL '75 minutes'`
+  );
+  for (const b of hourOut) {
+    if (!b.technician_id) continue;
+    await addNotification(
+      b.technician_id,
+      'Appointment starting soon',
+      `Reminder: your ${b.device_type} repair appointment is in about an hour, at ${b.preferred_time}.`,
+      'warning'
+    );
+    await pool.query(`UPDATE repair_requests SET reminder_sent_1h = TRUE WHERE id = $1`, [b.id]);
+  }
+
+  return dayOut.length + hourOut.length;
 };
 
 export const runAppointmentReminders = async (req, res) => {
@@ -337,6 +457,14 @@ export const cancelRepairRequest = async (req, res) => {
         'cancelled'
       );
     }
+    if (booking.technician_id) {
+      await addNotification(
+        booking.technician_id,
+        'Booking cancelled',
+        `The ${booking.device_type} repair scheduled for ${booking.preferred_date}${booking.preferred_time ? ' at ' + booking.preferred_time : ''} was cancelled by the customer. Reason: ${reason}.`,
+        'cancelled'
+      );
+    }
 
     res.json({ success: true, request: booking });
   } catch (err) {
@@ -350,6 +478,18 @@ export const rescheduleRepairRequest = async (req, res) => {
     const { preferred_date, preferred_time } = req.body;
 
     if (!preferred_date) return res.status(400).json({ error: 'preferred_date is required' });
+
+    const { rows: existingRows } = await pool.query(`SELECT * FROM repair_requests WHERE id = $1`, [id]);
+    if (!existingRows.length) return res.status(404).json({ error: 'Request not found' });
+    const existing = existingRows[0];
+
+    if (existing.technician_id && preferred_time) {
+      const slots = await getSlotsForDate(existing.technician_id, preferred_date);
+      const slot = slots.find(s => s.time === preferred_time);
+      if (!slot || !slot.available) {
+        return res.status(409).json({ error: 'That slot is not available for this technician. Please choose another time.' });
+      }
+    }
 
     const { rows } = await pool.query(
       `UPDATE repair_requests
@@ -365,6 +505,14 @@ export const rescheduleRepairRequest = async (req, res) => {
         booking.customer_id,
         'Booking rescheduled',
         `Your ${booking.device_type} repair has been moved to ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''}.`,
+        'info'
+      );
+    }
+    if (booking.technician_id) {
+      await addNotification(
+        booking.technician_id,
+        'Booking rescheduled',
+        `The ${booking.device_type} repair has been moved to ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''} by the customer.`,
         'info'
       );
     }

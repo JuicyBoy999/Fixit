@@ -3,6 +3,7 @@ import { addNotification } from '../models/notificationModel.js';
 import { ESEWA_CONFIG } from '../config/esewa.js';
 import { buildEsewaFormFields, verifyEsewaTransaction, generateSignature } from '../services/esewaService.js';
 import { notifyTechniciansOfNewRequest } from './repairRequestController.js';
+import { sendPaymentConfirmationEmail } from '../services/notificationService.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const BACKEND_URL  = process.env.BACKEND_URL  || 'http://localhost:5000';
@@ -74,8 +75,22 @@ export const handleEsewaSuccess = async (req, res) => {
         `Your payment for the ${booking.device_type} repair has been confirmed. A technician will be in touch shortly.`,
         'info'
       );
+
+      try {
+        const { rows: customerRows } = await pool.query('SELECT email, first_name FROM users WHERE id = $1', [booking.customer_id]);
+        const customer = customerRows[0];
+        if (customer?.email) {
+          sendPaymentConfirmationEmail(customer.email, customer.first_name, {
+            id: booking.id,
+            device_name: booking.device_type,
+            cost: Number(booking.amount) || 0,
+          }).catch(() => {});
+        }
+      } catch { /* email is best-effort */ }
     }
-    await notifyTechniciansOfNewRequest(booking);
+    if (!booking.technician_id) {
+      await notifyTechniciansOfNewRequest(booking);
+    }
 
     res.redirect(`${FRONTEND_URL}/payment/success?bookingId=${booking.id}`);
   } catch (err) {

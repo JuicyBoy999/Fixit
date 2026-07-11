@@ -1,5 +1,6 @@
 import { createUser, getUserByEmail, updateUser, updatePassword, comparePassword } from '../models/userModel.js';
 import { createTechnicianProfileForUser } from '../models/technicianModel.js';
+import { sendWelcomeEmail } from '../services/notificationService.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
@@ -7,7 +8,7 @@ dotenv.config();
 
 export const addUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, city, password, role } = req.body;
+    const { firstName, lastName, email, phone, city, password, role, address, credentialDocument } = req.body;
 
     if (!firstName || !lastName || !email || !phone || !city || !password) {
       return res.status(400).json({
@@ -27,16 +28,25 @@ export const addUser = async (req, res) => {
       });
     }
 
+    if (address && address.trim().length < 5) {
+      return res.status(400).json({
+        message: "Address must be at least 5 characters",
+      });
+    }
+
     const validRole = role === 'technician' ? 'technician' : 'user';
-    const user = await createUser(firstName, lastName, email, phone, city, password, validRole);
+    const user = await createUser(firstName, lastName, email, phone, city, password, validRole, address?.trim() || null);
 
     if (validRole === 'technician') {
       try {
-        await createTechnicianProfileForUser({ id: user.id, firstName: user.first_name, lastName: user.last_name, city: user.city });
+        const credentials = credentialDocument ? [credentialDocument] : [];
+        await createTechnicianProfileForUser({ id: user.id, firstName: user.first_name, lastName: user.last_name, city: user.city }, credentials);
       } catch (profileErr) {
         console.error('Failed to auto-create technician profile:', profileErr.message);
       }
     }
+
+    sendWelcomeEmail(user.email, user.first_name, validRole).catch(() => {});
 
     return res.status(201).json({
       message: "Account created successfully",
@@ -47,6 +57,7 @@ export const addUser = async (req, res) => {
         email: user.email,
         phone: user.phone,
         city: user.city,
+        address: user.address,
       },
     });
 
@@ -106,7 +117,7 @@ export const loginUser = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, phone, city, newPassword } = req.body;
+    const { firstName, lastName, email, phone, city, newPassword, address } = req.body;
 
     if (!firstName || !lastName || !email || !phone || !city) {
       return res.status(400).json({
@@ -120,7 +131,13 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    const user = await updateUser(id, firstName, lastName, email, phone, city);
+    if (address && address.trim().length < 5) {
+      return res.status(400).json({
+        message: "Address must be at least 5 characters",
+      });
+    }
+
+    const user = await updateUser(id, firstName, lastName, email, phone, city, address?.trim() || null);
 
     if (newPassword) {
       if (newPassword.length < 8) {
@@ -140,6 +157,7 @@ export const updateProfile = async (req, res) => {
         email: user.email,
         phone: user.phone,
         city: user.city,
+        address: user.address,
       },
     });
 

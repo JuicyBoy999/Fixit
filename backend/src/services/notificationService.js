@@ -189,6 +189,65 @@ export const sendPaymentConfirmationEmail = async (customerEmail, customerName, 
   }
 };
 
+export const sendWelcomeEmail = async (email, firstName, role) => {
+  const isTechnician = role === 'technician';
+  try {
+    await transporter.sendMail({
+      from: `"FixIt" <${process.env.EMAIL_FROM}>`,
+      to: email,
+      subject: `Welcome to FixIt!`,
+      html: `
+        <div style="background-color: #0d1117; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 40px; border-radius: 16px; max-width: 600px; margin: 20px auto; border: 1px solid #1e2a3a;">
+          <div style="display: flex; align-items: center; margin-bottom: 24px;">
+            <div style="width: 38px; height: 38px; background: #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #0d1117; font-weight: bold; margin-right: 12px;">F</div>
+            <span style="font-size: 20px; font-weight: 500;">Fix<b>It</b></span>
+          </div>
+          <h1 style="font-size: 24px; margin-bottom: 16px; color: #fff;">Welcome to FixIt, ${firstName}!</h1>
+          <p style="color: #d1d5db; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+            ${isTechnician
+              ? 'Your technician account has been created. Your credentials are now pending review by a FixIt administrator — you will receive another email as soon as your profile is approved and visible to customers.'
+              : 'Your account has been created successfully. You can now book certified repair technicians for same-day service.'}
+          </p>
+          <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #3d5068;">
+            This is an automated message. Replies to this email are not monitored.
+          </p>
+        </div>
+      `
+    });
+    console.log(`Welcome email sent to ${email}`);
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+  }
+};
+
+export const sendBookingStatusEmail = async (email, firstName, subject, headline, message) => {
+  try {
+    await transporter.sendMail({
+      from: `"FixIt" <${process.env.EMAIL_FROM}>`,
+      to: email,
+      subject,
+      html: `
+        <div style="background-color: #0d1117; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 40px; border-radius: 16px; max-width: 600px; margin: 20px auto; border: 1px solid #1e2a3a;">
+          <div style="display: flex; align-items: center; margin-bottom: 24px;">
+            <div style="width: 38px; height: 38px; background: #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #0d1117; font-weight: bold; margin-right: 12px;">F</div>
+            <span style="font-size: 20px; font-weight: 500;">Fix<b>It</b></span>
+          </div>
+          <h1 style="font-size: 24px; margin-bottom: 16px; color: #fff;">${headline}</h1>
+          <p style="color: #d1d5db; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+            Hello ${firstName}, ${message}
+          </p>
+          <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #3d5068;">
+            This is an automated message. Replies to this email are not monitored.
+          </p>
+        </div>
+      `
+    });
+    console.log(`Booking status email (${subject}) sent to ${email}`);
+  } catch (error) {
+    console.error('Error sending booking status email:', error);
+  }
+};
+
 export const sendTechnicianVerificationEmail = async (email, firstName, outcome, reason = '') => {
   const approved = outcome === 'approved';
 

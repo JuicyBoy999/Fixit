@@ -2,11 +2,11 @@ import pool from '../config/db.js';
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 
-export const createUser = async (firstName, lastName, email, phone, city, password, role = 'user') => {
+export const createUser = async (firstName, lastName, email, phone, city, password, role = 'user', address = null) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const result = await pool.query(
-    "INSERT INTO users (first_name, last_name, email, phone, city, password, role) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-    [firstName, lastName, email, phone, city, hashedPassword, role]
+    "INSERT INTO users (first_name, last_name, email, phone, city, password, role, address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+    [firstName, lastName, email, phone, city, hashedPassword, role, address]
   );
   return result.rows[0];
 };
@@ -50,10 +50,10 @@ export const getManageableUsers = async () => {
   return result.rows;
 };
 
-export const updateUser = async (id, firstName, lastName, email, phone, city) => {
+export const updateUser = async (id, firstName, lastName, email, phone, city, address = null) => {
   const result = await pool.query(
-    "UPDATE users SET first_name=$1, last_name=$2, email=$3, phone=$4, city=$5 WHERE id=$6 RETURNING *",
-    [firstName, lastName, email, phone, city, id]
+    "UPDATE users SET first_name=$1, last_name=$2, email=$3, phone=$4, city=$5, address=$6 WHERE id=$7 RETURNING *",
+    [firstName, lastName, email, phone, city, address, id]
   );
   return result.rows[0];
 };

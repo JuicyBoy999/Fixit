@@ -1,0 +1,150 @@
+.inv-page {
+  min-height: 100vh;
+  background: #EAF7FC;
+  color: #16303D;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 32px 20px;
+}
+
+.inv-state {
+  text-align: center;
+  color: #4E7182;
+  padding: 60px 0;
+}
+
+.inv-toolbar {
+  width: min(760px, 100%);
+  margin: 0 auto 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inv-back,
+.inv-print {
+  border: 1px solid #8FCBE3;
+  background: #CFEEF8;
+  color: #16303D;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.inv-print {
+  background: #2E86AB;
+  color: #fff;
+  border-color: #2E86AB;
+}
+
+.inv-sheet {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #8FCBE3;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 22px 55px rgba(18, 50, 71, 0.12);
+}
+
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid #123247;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.inv-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 20px;
+}
+
+.inv-meta {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inv-meta h1 { margin: 0 0 4px; font-size: 24px; }
+.inv-meta span { color: #4E7182; font-size: 13px; }
+
+.inv-parties {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.inv-parties > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inv-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4E7182;
+}
+
+.inv-parties strong { font-size: 15px; }
+.inv-parties span { font-size: 13px; color: #4E7182; }
+.inv-status { text-transform: capitalize; }
+
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+.inv-table th,
+.inv-table td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid #CFEEF8;
+  font-size: 14px;
+}
+
+.inv-table th {
+  color: #4E7182;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid #123247;
+}
+
+.inv-table tfoot td {
+  font-weight: 800;
+  font-size: 16px;
+  border-top: 2px solid #123247;
+  border-bottom: none;
+}
+
+.inv-note {
+  color: #4E7182;
+  font-size: 12px;
+  margin: 0 0 20px;
+}
+
+.inv-footer {
+  text-align: center;
+  color: #4E7182;
+  font-size: 12px;
+  margin-top: 24px;
+  border-top: 1px solid #CFEEF8;
+  padding-top: 16px;
+}
+
+@media print {
+  .inv-page { background: #fff; padding: 0; }
+  .inv-toolbar { display: none; }
+  .inv-sheet { box-shadow: none; border: none; width: 100%; }
+}

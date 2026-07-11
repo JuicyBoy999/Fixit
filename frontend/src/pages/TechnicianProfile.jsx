@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import logo from '../assets/image.png'
+import TechnicianCalendar from './TechnicianCalendar'
 import './TechnicianProfile.css'
 
 const API = 'http://localhost:5000'
@@ -124,22 +125,31 @@ export default function TechnicianProfile() {
 
               <section className="tp-panel">
                 <h2>Certification Badges</h2>
-                <div className="tp-cert-list">
-                  {(technician.certifications || []).map(cert => (
-                    <div className="tp-cert" key={cert.id}>
-                      <span className="tp-cert-badge">CERT</span>
-                      <div>
-                        <strong>{cert.name}</strong>
-                        <span>{cert.issuer || 'Verified provider'} — {fmt(cert.issued_on)}</span>
+                {technician.verification_status !== 'approved' ? (
+                  <p className="tp-muted">This technician's credentials are still pending admin verification.</p>
+                ) : (
+                  <div className="tp-cert-list">
+                    {(technician.certifications || []).map(cert => (
+                      <div className="tp-cert" key={cert.id}>
+                        <span className="tp-cert-badge">CERT</span>
+                        <div>
+                          <strong>{cert.name}</strong>
+                          <span>{cert.issuer || 'Verified provider'} — {fmt(cert.issued_on)}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  {(!technician.certifications || technician.certifications.length === 0) && (
-                    <p className="tp-muted">No certifications listed yet.</p>
-                  )}
-                </div>
+                    ))}
+                    {(!technician.certifications || technician.certifications.length === 0) && (
+                      <p className="tp-muted">No certifications listed yet.</p>
+                    )}
+                  </div>
+                )}
               </section>
             </div>
+
+            <section className="tp-panel">
+              <h2>Availability</h2>
+              <TechnicianCalendar tech={{ id: technician.user_id, name: technician.full_name }} />
+            </section>
 
             <section className="tp-panel">
               <h2>Customer Reviews</h2>

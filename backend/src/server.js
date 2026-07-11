@@ -196,12 +196,17 @@ pool.query(`
   END $$;
 `).then(() => console.log('Messages FK migration OK')).catch(() => {});
 
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT`).catch(() => {});
+pool.query(`ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS address TEXT`).catch(() => {});
+pool.query(`ALTER TABLE repair_requests ADD COLUMN IF NOT EXISTS reminder_sent_1h BOOLEAN DEFAULT FALSE`).catch(() => {});
+pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP`).catch(() => {});
+
 import { generateDueReminders } from './controllers/repairRequestController.js';
 const runReminders = () =>
   generateDueReminders()
     .then(n => { if (n) console.log(`Appointment reminders sent: ${n}`); })
     .catch(err => console.error('Reminder job failed:', err.message));
 setTimeout(runReminders, 5000);
-setInterval(runReminders, 60 * 60 * 1000);
+setInterval(runReminders, 15 * 60 * 1000);
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

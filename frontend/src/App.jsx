@@ -5,7 +5,6 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Dashboard from './pages/Dashboard';
 import BookRepair from './pages/BookRepair';
-import BrowseTechnicians from './pages/BrowseTechnicians';
 import TechnicianCalendar from './pages/TechnicianCalendar';
 import { AuthProvider } from './context/AuthContext';
 import AdminLogin from './components/auth/AdminLogin';
@@ -32,6 +31,7 @@ import AdminCategories from './pages/AdminCategories';
 import AdminLeaderboard from './pages/AdminLeaderboard';
 import AdminRevenue from './pages/AdminRevenue';
 import AdminDirectory from './pages/AdminDirectory';
+import Invoice from './pages/Invoice';
 
 function App() {
   return (
@@ -56,7 +56,6 @@ function App() {
 
           <Route path="/book-repair" element={<BookRepair />} />
           <Route path="/book" element={<BookRepair />} />
-          <Route path="/browse-technicians" element={<BrowseTechnicians />} />
           <Route path="/calendar" element={<TechnicianCalendar />} />
           <Route path="/cancel-booking" element={<CancelBooking />} />
           <Route path="/reschedule-booking" element={<RescheduleBooking />} />
@@ -71,6 +70,7 @@ function App() {
           <Route path="/technicians/repair-requests/:id" element={<RepairRequestDetails />} />
           <Route path="/technicians/:id" element={<TechnicianProfile />} />
           <Route path="/chat/:repairId" element={<Chat />} />
+          <Route path="/invoice/:id" element={<Invoice />} />
           <Route path="/oauth-callback" element={<OAuthCallback />} />
           <Route path="/payment/success" element={<PaymentResult status="success" />} />
           <Route path="/payment/failure" element={<PaymentResult status="failure" />} />

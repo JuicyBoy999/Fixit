@@ -92,12 +92,21 @@ export const removeUnavailableDate = async (technicianId, date) => {
 };
 
 export const getSlotsForDate = async (technicianId, dateStr) => {
+  const bookedRes = await pool.query(
+    `SELECT preferred_time FROM repair_requests
+     WHERE technician_id = $1 AND preferred_date = $2
+       AND status NOT IN ('cancelled', 'declined')
+       AND preferred_time IS NOT NULL`,
+    [technicianId, dateStr]
+  );
+  const bookedTimes = new Set(bookedRes.rows.map(r => r.preferred_time));
+
   const blockRes = await pool.query(
     `SELECT 1 FROM technician_unavailability
      WHERE technician_id = $1 AND unavailable_date = $2`,
     [technicianId, dateStr]
   );
-  if (blockRes.rowCount > 0) return buildSlots(null, null);
+  if (blockRes.rowCount > 0) return buildSlots(null, null, bookedTimes);
 
   const [year, month, day] = dateStr.split('-').map(Number);
   const dayOfWeek = new Date(year, month - 1, day).getDay();
@@ -107,12 +116,12 @@ export const getSlotsForDate = async (technicianId, dateStr) => {
      WHERE technician_id = $1 AND day_of_week = $2 AND is_active = TRUE`,
     [technicianId, dayOfWeek]
   );
-  if (hoursRes.rowCount === 0) return buildSlots(null, null);
+  if (hoursRes.rowCount === 0) return buildSlots(null, null, bookedTimes);
 
   const { start_time, end_time } = hoursRes.rows[0];
-  return buildSlots(start_time, end_time);
+  return buildSlots(start_time, end_time, bookedTimes);
 };
-function buildSlots(startTime, endTime) {
+function buildSlots(startTime, endTime, bookedTimes = new Set()) {
   const slots = [];
   for (let h = 8; h < 18; h++) {
     const label = `${String(h).padStart(2, '0')}:00`;
@@ -123,6 +132,7 @@ function buildSlots(startTime, endTime) {
       const endH   = parseInt(endTime.split(':')[0],   10);
       available = slotH >= startH && slotH < endH;
     }
+    if (bookedTimes.has(label)) available = false;
     slots.push({ time: label, available });
   }
   return slots;
@@ -131,7 +141,11 @@ export const getTechniciansWithAvailability = async () => {
   const result = await pool.query(
     `SELECT u.id, u.first_name, u.last_name, u.city
      FROM users u
+     JOIN technician_profiles tp ON tp.user_id = u.id
      WHERE u.role = 'technician'
+       AND COALESCE(u.status, 'active') = 'active'
+       AND tp.status = 'active'
+       AND tp.verification_status = 'approved'
      ORDER BY u.first_name`
   );
   return result.rows;

@@ -9,15 +9,17 @@ dotenv.config();
 const sendResetEmail = async (email, resetUrl) => {
   try {
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM,          
+      from: process.env.EMAIL_FROM,
       to: email,
       subject: 'Fixit – Reset Your Password',
+      text: `You requested a password reset for your Fixit account.\n\nOpen this link to set a new password (expires in 30 minutes):\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
           <h2 style="color: #333;">Fixit Password Reset</h2>
           <p>You requested a password reset. Click the button below to set a new password. This link expires in 30 minutes.</p>
           <a href="${resetUrl}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Reset Password</a>
           <p style="margin-top: 20px; color: #888;">If you didn't request this, please ignore this email.</p>
+          <p style="margin-top: 20px; color: #888; font-size: 12px;">If the button doesn't work, copy and paste this link into your browser:<br>${resetUrl}</p>
         </div>
       `,
     });

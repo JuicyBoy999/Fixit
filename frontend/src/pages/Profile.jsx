@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '../assets/image.png'
 import './Profile.css'
@@ -13,10 +13,74 @@ export default function Profile() {
   const [email, setEmail] = useState(storedUser.email || '')
   const [phone, setPhone] = useState(storedUser.phone || '')
   const [city, setCity] = useState(storedUser.city || 'kathmandu')
+  const [address, setAddress] = useState(storedUser.address || '')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  const isTechnician = storedUser.role === 'technician'
+  const [techTitle, setTechTitle] = useState('')
+  const [techBio, setTechBio] = useState('')
+  const [techSkills, setTechSkills] = useState('')
+  const [techYears, setTechYears] = useState('')
+  const [techRate, setTechRate] = useState('')
+  const [techError, setTechError] = useState('')
+  const [techSuccess, setTechSuccess] = useState(false)
+  const [techSaving, setTechSaving] = useState(false)
+
+  useEffect(() => {
+    if (!isTechnician) return
+    const token = localStorage.getItem('token')
+    fetch('http://localhost:5000/api/technicians/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(data => {
+        const t = data.technician
+        if (!t) return
+        setTechTitle(t.title || '')
+        setTechBio(t.bio || '')
+        setTechSkills((t.skills || []).join(', '))
+        setTechYears(t.years_experience ?? '')
+        setTechRate(t.hourly_rate ?? '')
+      })
+      .catch(() => {})
+  }, [isTechnician])
+
+  async function handleTechSubmit(e) {
+    e.preventDefault()
+    setTechError('')
+    setTechSuccess(false)
+    setTechSaving(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('http://localhost:5000/api/technicians/me', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: techTitle,
+          bio: techBio,
+          skills: techSkills,
+          years_experience: techYears === '' ? null : Number(techYears),
+          hourly_rate: techRate === '' ? null : Number(techRate),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setTechError(data.message || 'Failed to save professional profile.')
+        return
+      }
+      setTechSuccess(true)
+    } catch {
+      setTechError('Cannot connect to server.')
+    } finally {
+      setTechSaving(false)
+    }
+  }
 
   const initials = firstName.charAt(0) + lastName.charAt(0)
 
@@ -31,6 +95,7 @@ export default function Profile() {
     setEmail(storedUser.email || '')
     setPhone(storedUser.phone || '')
     setCity(storedUser.city || 'kathmandu')
+    setAddress(storedUser.address || '')
     setNewPassword('')
     setConfirmPassword('')
     setError('')
@@ -43,6 +108,10 @@ export default function Profile() {
 
     if (phone.length > 0 && phone.length !== 10) {
       setError('Phone number must be exactly 10 digits.')
+      return
+    }
+    if (address.trim() !== '' && address.trim().length < 5) {
+      setError('Address must be at least 5 characters.')
       return
     }
     if (newPassword !== '' && newPassword.length < 8) {
@@ -63,7 +132,7 @@ export default function Profile() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ firstName, lastName, email, phone, city, newPassword }),
+        body: JSON.stringify({ firstName, lastName, email, phone, city, address, newPassword }),
       })
 
       const data = await res.json()
@@ -73,7 +142,7 @@ export default function Profile() {
         return
       }
 
-      const updated = { ...storedUser, firstName, lastName, email, phone, city }
+      const updated = { ...storedUser, firstName, lastName, email, phone, city, address }
       localStorage.setItem('user', JSON.stringify(updated))
       setSuccess(true)
 
@@ -174,6 +243,19 @@ export default function Profile() {
                 </select>
               </div>
 
+              <div className="pf-field">
+                <label>Address</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Near Basantapur, Thamel"
+                  value={address}
+                  onChange={e => setAddress(e.target.value)}
+                />
+                {address.trim().length > 0 && address.trim().length < 5 && (
+                  <small className="pf-hint">Address must be at least 5 characters</small>
+                )}
+              </div>
+
               <hr className="pf-line" />
               <p className="pf-section">Change Password <span className="pf-note">(leave blank to keep current)</span></p>
 
@@ -209,6 +291,76 @@ export default function Profile() {
 
             </form>
           </div>
+
+          {isTechnician && (
+            <div className="pf-card">
+              <h2>Professional Profile</h2>
+              <p className="pf-sub">Shown to customers on your technician profile page</p>
+
+              {techError && <p className="pf-error">{techError}</p>}
+              {techSuccess && <p className="pf-success">✓ Professional profile saved!</p>}
+
+              <form onSubmit={handleTechSubmit}>
+                <div className="pf-field">
+                  <label>Title</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Senior Mobile and Laptop Repair Specialist"
+                    value={techTitle}
+                    onChange={e => setTechTitle(e.target.value)}
+                  />
+                </div>
+
+                <div className="pf-field">
+                  <label>Bio</label>
+                  <textarea
+                    rows={4}
+                    placeholder="Tell customers about your experience and approach..."
+                    value={techBio}
+                    onChange={e => setTechBio(e.target.value)}
+                  />
+                </div>
+
+                <div className="pf-field">
+                  <label>Skills / Device Specialities</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Smartphone repair, Laptop diagnostics, Board repair"
+                    value={techSkills}
+                    onChange={e => setTechSkills(e.target.value)}
+                  />
+                  <small className="pf-hint">Separate multiple skills with commas</small>
+                </div>
+
+                <div className="pf-row">
+                  <div className="pf-field">
+                    <label>Years of Experience</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={techYears}
+                      onChange={e => setTechYears(e.target.value)}
+                    />
+                  </div>
+                  <div className="pf-field">
+                    <label>Hourly Rate (NPR)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={techRate}
+                      onChange={e => setTechRate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="pf-actions">
+                  <button type="submit" className="pf-btn-save" disabled={techSaving}>
+                    {techSaving ? 'Saving...' : 'Save Professional Profile'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
         </div>
       </main>

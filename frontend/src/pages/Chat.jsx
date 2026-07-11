@@ -36,6 +36,10 @@ export default function Chat() {
         headers: { Authorization: `Bearer ${token}` },
       })
       const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Could not load messages.')
+        return
+      }
       if (data.messages) setMessages(data.messages)
     } catch {
       setError('Could not load messages.')
@@ -126,7 +130,10 @@ export default function Chat() {
                 <div className="ch-msg-bubble-wrap">
                   {!isMe && <span className="ch-msg-name">{m.sender_name || 'Other party'}</span>}
                   <div className="ch-msg-bubble">{m.content}</div>
-                  <span className="ch-msg-time">{fmt(m.created_at)}</span>
+                  <span className="ch-msg-time">
+                    {fmt(m.created_at)}
+                    {isMe && <> · {m.read_at ? '✓✓ Read' : '✓ Sent'}</>}
+                  </span>
                 </div>
               </div>
             )

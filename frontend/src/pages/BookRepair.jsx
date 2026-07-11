@@ -31,6 +31,7 @@ export default function BookRepair() {
   const [saving, setSaving] = useState(false)
   const [estimate, setEstimate] = useState(null)
   const [loadingEstimate, setLoadingEstimate] = useState(false)
+  const [categories, setCategories] = useState([])
 
   function handlePhoto(e) {
     const file = e.target.files[0]
@@ -62,6 +63,13 @@ export default function BookRepair() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    fetch(`${API}/api/categories`)
+      .then(r => r.json())
+      .then(data => { if (data.categories?.length) setCategories(data.categories) })
+      .catch(() => {})
+  }, [])
+
   function handlePhone(e) {
     const val = e.target.value.replace(/\D/g, '')
     if (val.length <= 10) setPhone(val)
@@ -82,6 +90,7 @@ export default function BookRepair() {
     if (!name.trim()) { setError('Please enter your full name.'); return }
     if (phone.length !== 10) { setError('Phone number must be exactly 10 digits.'); return }
     if (!email.trim()) { setError('Please enter your email address.'); return }
+    if (!address.trim()) { setError('Please enter your address.'); return }
     setError('')
     setLoadingEstimate(true)
     setStep(3)
@@ -121,6 +130,7 @@ export default function BookRepair() {
           preferred_time:    selectedSlot,
           customer_area:     city,
           photo_url:         photoPreview || null,
+          address,
         }),
       })
       const data = await res.json()
@@ -231,14 +241,9 @@ export default function BookRepair() {
                 <label className="br-label">Device Type</label>
                 <select className="br-input" value={deviceType} onChange={e => setDeviceType(e.target.value)}>
                   <option value="" disabled>Select device type...</option>
-                  <option>Smartphone</option>
-                  <option>Laptop</option>
-                  <option>TV</option>
-                  <option>Desktop</option>
-                  <option>Tablet</option>
-                  <option>Gaming Console</option>
-                  <option>Home Appliance</option>
-                  <option>Other</option>
+                  {(categories.length ? categories.map(c => c.name) : [
+                    'Smartphone', 'Laptop', 'TV', 'Desktop', 'Tablet', 'Gaming Console', 'Home Appliance', 'Other',
+                  ]).map(name => <option key={name}>{name}</option>)}
                 </select>
               </div>
 
@@ -264,9 +269,11 @@ export default function BookRepair() {
                 className="br-input br-textarea"
                 placeholder="Eg. Screen is cracked, wont turn on, battery drains fast..."
                 value={issue}
-                onChange={e => setIssue(e.target.value)}
+                onChange={e => setIssue(e.target.value.slice(0, 500))}
+                maxLength={500}
                 rows={4}
               />
+              <small className="br-hint">{issue.length}/500 characters</small>
             </div>
 
             <div className="br-form-grid">
@@ -394,6 +401,7 @@ export default function BookRepair() {
                 <span className="br-summary-key">Date</span><span>{date}</span>
                 <span className="br-summary-key">Time</span><span>{selectedSlot}</span>
                 <span className="br-summary-key">City</span><span>{city}</span>
+                <span className="br-summary-key">Address</span><span>{address || '-'}</span>
               </div>
             </div>
 
@@ -414,6 +422,7 @@ export default function BookRepair() {
                 <span className="br-summary-key">Date</span><span>{date}</span>
                 <span className="br-summary-key">Time</span><span>{selectedSlot}</span>
                 <span className="br-summary-key">City</span><span>{city}</span>
+                <span className="br-summary-key">Address</span><span>{address || '-'}</span>
               </div>
             </div>
 

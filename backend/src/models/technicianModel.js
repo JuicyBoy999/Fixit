@@ -6,12 +6,12 @@ const RATINGS_CTE = `
   SELECT tp2.id AS tp_id, r.rating FROM reviews r JOIN technician_profiles tp2 ON tp2.user_id = r.technician_id
 `;
 
-export const createTechnicianProfileForUser = async (user) => {
+export const createTechnicianProfileForUser = async (user, credentialDocuments = []) => {
   const result = await pool.query(
-    `INSERT INTO technician_profiles (user_id, full_name, title, bio, location, years_experience, verification_status)
-     VALUES ($1, $2, 'Repair Technician', 'Fixit-certified technician ready to help with your repair.', $3, 0, 'approved')
+    `INSERT INTO technician_profiles (user_id, full_name, title, bio, location, years_experience, verification_status, credential_documents)
+     VALUES ($1, $2, 'Repair Technician', 'Fixit-certified technician ready to help with your repair.', $3, 0, 'pending', $4)
      RETURNING *`,
-    [user.id, `${user.firstName} ${user.lastName}`.trim(), user.city]
+    [user.id, `${user.firstName} ${user.lastName}`.trim(), user.city, JSON.stringify(credentialDocuments)]
   );
   return result.rows[0];
 };
@@ -36,7 +36,7 @@ export const getTechnicians = async () => {
      FROM technician_profiles tp
      LEFT JOIN (${RATINGS_CTE}) combined ON combined.tp_id = tp.id
      LEFT JOIN technician_certifications tc ON tc.technician_id = tp.id
-     WHERE tp.status != 'suspended'
+     WHERE tp.status != 'suspended' AND tp.verification_status = 'approved'
      GROUP BY tp.id
      ORDER BY average_rating DESC, review_count DESC, tp.full_name ASC`
   );
@@ -89,6 +89,33 @@ export const getTechnicianById = async (id) => {
     certifications: certificationsResult.rows,
     reviews: reviewsResult.rows,
   };
+};
+
+export const getTechnicianByUserId = async (userId) => {
+  const result = await pool.query(
+    `SELECT id, user_id, full_name, title, bio, skills, location, years_experience,
+            hourly_rate, status, verification_status, credential_documents
+     FROM technician_profiles
+     WHERE user_id = $1`,
+    [userId]
+  );
+  return result.rows[0];
+};
+
+export const updateTechnicianProfileByUserId = async (userId, { title, bio, skills, years_experience, hourly_rate }) => {
+  const result = await pool.query(
+    `UPDATE technician_profiles
+     SET title = COALESCE($1, title),
+         bio = COALESCE($2, bio),
+         skills = COALESCE($3, skills),
+         years_experience = COALESCE($4, years_experience),
+         hourly_rate = COALESCE($5, hourly_rate),
+         updated_at = CURRENT_TIMESTAMP
+     WHERE user_id = $6
+     RETURNING *`,
+    [title || null, bio || null, skills || null, years_experience ?? null, hourly_rate ?? null, userId]
+  );
+  return result.rows[0];
 };
 
 export const getManageableTechnicians = async () => {
