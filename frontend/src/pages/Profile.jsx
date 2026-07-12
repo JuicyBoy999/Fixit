@@ -174,6 +174,7 @@ export default function Profile() {
             <span className="pf-role">⚡ {storedUser.role === 'technician' ? 'Technician' : 'Customer'}</span>
           </aside>
 
+          <div className="pf-main-col">
           <div className="pf-card">
             <h2>Profile Settings</h2>
             <p className="pf-sub">Update your personal information</p>
@@ -361,6 +362,7 @@ export default function Profile() {
               </form>
             </div>
           )}
+          </div>
 
         </div>
       </main>

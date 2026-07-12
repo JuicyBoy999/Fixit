@@ -59,6 +59,13 @@
   align-items: start;
 }
 
+.pf-main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
 .pf-sidebar {
   background: #CFEEF8;
   border: 1px solid #8FCBE3;
@@ -146,7 +153,8 @@
 .pf-field label { font-size: 12px; font-weight: 500; color: #4E7182; margin-bottom: 5px; }
 
 .pf-field input,
-.pf-field select {
+.pf-field select,
+.pf-field textarea {
   height: 40px;
   background: #EAF7FC;
   border: 1.5px solid #8FCBE3;
@@ -159,10 +167,19 @@
   transition: border-color .15s;
 }
 
-.pf-field input::placeholder { color: #4E7182; }
+.pf-field textarea {
+  height: auto;
+  min-height: 90px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.pf-field input::placeholder,
+.pf-field textarea::placeholder { color: #4E7182; }
 
 .pf-field input:focus,
-.pf-field select:focus { border-color: #2E86AB; }
+.pf-field select:focus,
+.pf-field textarea:focus { border-color: #2E86AB; }
 
 .pf-field select {
   appearance: none;

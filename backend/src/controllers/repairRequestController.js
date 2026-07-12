@@ -18,8 +18,7 @@ export const listRepairRequests = async (req, res) => {
        FROM repair_requests r
        LEFT JOIN users u  ON u.id  = r.technician_id
        LEFT JOIN users cu ON cu.id = r.customer_id
-       WHERE r.status = 'pending'
-          OR r.technician_id = $1
+       WHERE r.technician_id = $1
        ORDER BY r.created_at DESC`,
       [techId || 0]
     );
@@ -115,6 +114,21 @@ export const createRepairRequest = async (req, res) => {
         `A customer in ${customer_area} has requested ${device_type} repair for ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''}. Check your repair requests to accept.`,
         'info'
       );
+
+      try {
+        const { rows: techRows } = await pool.query('SELECT email, first_name FROM users WHERE id = $1', [technician_id]);
+        const technician = techRows[0];
+        if (technician?.email) {
+          const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+          sendBookingStatusEmail(
+            technician.email,
+            technician.first_name,
+            'New Repair Request — FixIt',
+            'A customer booked you for a repair',
+            `a customer in ${customer_area} has requested a ${device_type} repair for ${preferred_date}${preferred_time ? ' at ' + preferred_time : ''}${fault_description ? `. Issue: "${fault_description}"` : ''}. View and accept it from your repair requests: ${frontendUrl}/repair-requests`
+          ).catch(() => {});
+        }
+      } catch { /* email is best-effort */ }
     }
 
     if (customer_id) {
@@ -262,7 +276,7 @@ export const getRepairMessages = async (req, res) => {
     );
 
     const { rows } = await pool.query(
-      `SELECT m.id, m.sender_id, m.content, m.created_at, m.read_at,
+      `SELECT m.id, m.sender_id, m.content, m.created_at, m.read_at, m.flagged,
               (u.first_name || ' ' || u.last_name) AS sender_name, u.role AS sender_role
        FROM messages m
        JOIN users u ON u.id = m.sender_id

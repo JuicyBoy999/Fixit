@@ -21,7 +21,7 @@ export const getUserByEmail = async (email) => {
 
 export const findOrCreateOAuthUser = async ({ firstName, lastName, email, role = 'user' }) => {
   const existing = await getUserByEmail(email);
-  if (existing) return existing;
+  if (existing) return { ...existing, isNew: false };
 
   const randomPassword = randomBytes(24).toString('hex');
   const hashedPassword = await bcrypt.hash(randomPassword, 10);
@@ -29,7 +29,7 @@ export const findOrCreateOAuthUser = async ({ firstName, lastName, email, role =
     "INSERT INTO users (first_name, last_name, email, phone, city, password, role) VALUES ($1, $2, $3, NULL, NULL, $4, $5) RETURNING *",
     [firstName, lastName, email, hashedPassword, role]
   );
-  return result.rows[0];
+  return { ...result.rows[0], isNew: true };
 };
 
 export const getUserById = async (id) => {

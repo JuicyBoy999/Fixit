@@ -59,6 +59,20 @@ export default function Chat() {
     } catch {}
   }
 
+  async function handleFlag(messageId) {
+    try {
+      const res = await fetch(`${API}/api/messages/${messageId}/flag`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, flagged: true } : m))
+      }
+    } catch {
+      setError('Failed to flag message.')
+    }
+  }
+
   async function handleSend(e) {
     e.preventDefault()
     const msg = text.trim()
@@ -133,6 +147,11 @@ export default function Chat() {
                   <span className="ch-msg-time">
                     {fmt(m.created_at)}
                     {isMe && <> · {m.read_at ? '✓✓ Read' : '✓ Sent'}</>}
+                    {m.flagged ? (
+                      <> · 🚩 Flagged</>
+                    ) : (
+                      !isMe && <> · <button type="button" className="ch-flag-btn" onClick={() => handleFlag(m.id)}>Flag</button></>
+                    )}
                   </span>
                 </div>
               </div>

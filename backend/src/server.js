@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { findOrCreateOAuthUser } from './models/userModel.js';
+import { createTechnicianProfileForUser } from './models/technicianModel.js';
 
 import userRoute from './routes/userRoute.js';
 import authRoutes from './routes/authRoutes.js';
@@ -74,6 +75,15 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         email,
         role,
       });
+
+      if (user.isNew && role === 'technician') {
+        try {
+          await createTechnicianProfileForUser({ id: user.id, firstName: user.first_name, lastName: user.last_name, city: user.city });
+        } catch (profileErr) {
+          console.error('Failed to auto-create technician profile for OAuth signup:', profileErr.message);
+        }
+      }
+
       done(null, user);
     } catch (err) {
       done(err);
